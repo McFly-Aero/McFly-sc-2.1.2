@@ -1,4 +1,7 @@
-import increaseTime, { duration } from './help/increaseTime';
+import increaseTime, { duration } from 'zeppelin-solidity/test/helpers/increaseTime';
+import latestTime from 'zeppelin-solidity/test/helpers/latestTime';
+
+//import increaseTime, { duration } from './help/increaseTime';
 import moment from 'moment';
 
 
@@ -12,13 +15,16 @@ contract('Crowdsale', (accounts) => {
     let client1, client2, client3, client4;
     let wallet;
     let wavesAgent;
+    let wavesGW;
     let fundMintingAgent;
     let teamWallet;
     let bountyOnlineWallet;
+    let bountyOnlineGW;
     let bountyOfflineWallet;
     let advisoryWallet;
     let reservedWallet;
     let airdropWallet;
+    let airdropGW;
     let preMcFlyWallet;
     let wavesTokens = 100e24;
 
@@ -35,14 +41,17 @@ contract('Crowdsale', (accounts) => {
 
         wallet = web3.eth.accounts[5];
         wavesAgent = web3.eth.accounts[6];
-        fundMintingAgent = web3.eth.accounts[7];
-        teamWallet = web3.eth.accounts[8];
-        bountyOnlineWallet = web3.eth.accounts[9];
-        bountyOfflineWallet = web3.eth.accounts[10];
-        advisoryWallet = web3.eth.accounts[11];
-        reservedWallet = web3.eth.accounts[12];
-        airdropWallet = web3.eth.accounts[13];
-        preMcFlyWallet = web3.eth.accounts[14];
+        wavesGW = web3.eth.accounts[7];
+        fundMintingAgent = web3.eth.accounts[8];
+        teamWallet = web3.eth.accounts[9];
+        bountyOnlineWallet = web3.eth.accounts[10];
+        bountyOnlineGW = web3.eth.accounts[11];
+        bountyOfflineWallet = web3.eth.accounts[12];
+        advisoryWallet = web3.eth.accounts[13];
+        reservedWallet = web3.eth.accounts[14];
+        airdropWallet = web3.eth.accounts[15];
+        airdropGW = web3.eth.accounts[16];
+        preMcFlyWallet = web3.eth.accounts[17];
     });
 
     let balanceEqualTo = async (client, should_balance) => {
@@ -85,7 +94,8 @@ contract('Crowdsale', (accounts) => {
     };
 
     beforeEach(async function () {
-        startTimeTLP2 = web3.eth.getBlock('latest').timestamp + duration.weeks(1);
+//        startTimeTLP2 = web3.eth.getBlock('latest').timestamp + duration.weeks(1);
+        startTimeTLP2 = latestTime() + duration.weeks(1);
         endTimeTLP2 = startTimeTLP2 + duration.days(56);
 
         startTimeW1 = endTimeTLP2 + duration.days(60);
@@ -104,13 +114,16 @@ contract('Crowdsale', (accounts) => {
             preMcFlyTotalSupply,
             wallet,
             wavesAgent,
+	    wavesGW,
             fundMintingAgent,
             teamWallet,
             bountyOnlineWallet,
+            bountyOnlineGW,
             bountyOfflineWallet,
             advisoryWallet,                                                             
             reservedWallet,
 	    airdropWallet,
+	    airdropGW,
 	    preMcFlyWallet
         );
         token = await Token.at(await sale.token());
@@ -123,8 +136,14 @@ contract('Crowdsale', (accounts) => {
     });
   
     it("running -> check ITO is started", async() => {
-        assert.equal((await sale.running()), false);
+        assert.equal((await sale.running({from: owner})), false);
+	let date1 = await sale.startTimeTLP2({from: owner});
+	assert.equal(date1, '111');
+	assert.equal((await sale.test123()).toNumber(), '111');
+//	assert.equal((web3.eth.getBlock('latest').timestamp+duration.weeks(1)), (await sale.test123()));
+        assert.equal((await sale.stageName()), 'Not started');
         await increaseTime(duration.days(15));
+        assert.equal((await sale.stageName()), 'TLP1.2');
         assert.equal((await sale.running()), true);
     });
 
@@ -140,7 +159,6 @@ contract('Crowdsale', (accounts) => {
         token.allowTransfer(airdropWallet);
 */
         assert.equal((totalSupply/70/1e18*10).toFixed(4), ((await sale.teamTokens())/1e18).toFixed(4), 'team tokens');
-//        assert.equal((totalSupply/70/1e18*10).toFixed(4), ((await token.balanceOf(owner))/1e18).toFixed(4), 'team wallet balance');
 
         assert.equal((totalSupply/70/1e18*2).toFixed(4), ((await sale.bountyOnlineTokens())/1e18).toFixed(4), 'bounty online tokens');
         assert.equal((totalSupply/70/1e18*2).toFixed(4), ((await token.balanceOf(bountyOnlineWallet))/1e18).toFixed(4), 'bounty online wallet balance');
@@ -149,17 +167,17 @@ contract('Crowdsale', (accounts) => {
         assert.equal((totalSupply/70/1e18*3).toFixed(4), ((await token.balanceOf(bountyOfflineWallet))/1e18).toFixed(4), 'bounty offline wallet balance');
 
         assert.equal((totalSupply/70/1e18*5).toFixed(4), ((await sale.advisoryTokens())/1e18).toFixed(4), 'advisory tokens');
-        assert.equal((totalSupply/70/1e18*5).toFixed(4), ((await token.balanceOf(advisoryWallet))/1e18).toFixed(4), 'advisory wallet balance');
 
         assert.equal((totalSupply/70/1e18*9).toFixed(4), ((await sale.reservedTokens())/1e18).toFixed(4), 'reserved tokens');
-        assert.equal((totalSupply/70/1e18*9).toFixed(4), ((await token.balanceOf(reservedWallet))/1e18).toFixed(4), 'reserved wallet balance');
 
         assert.equal((totalSupply/70/1e18*1).toFixed(4), ((await sale.airdropTokens())/1e18).toFixed(4), 'airdrop tokens');
         assert.equal((totalSupply/70/1e18*1).toFixed(4), ((await token.balanceOf(airdropWallet))/1e18).toFixed(4), 'airdrop wallet balance');
 
         assert.equal((preMcFlyTotalSupply/1e18).toFixed(4), ((await token.balanceOf(preMcFlyWallet))/1e18).toFixed(4), 'preMcFly wallet balance');
  
-       assert.equal((wavesTokens/1e18).toFixed(4), ((await token.balanceOf(wavesWallet))/1e18).toFixed(4), 'preMcFly wallet balance');
+        assert.equal((wavesTokens/1e18).toFixed(4), ((await token.balanceOf(wavesAgent))/1e18).toFixed(4), 'waves wallet balance');
+
+        assert.equal((432000000/1e18).toFixed(4), ((await token.balanceOf(owner))/1e18).toFixed(4), 'team wallet balance');
     });
  
     it("calcAmountAt -> TLP2", async() => {
@@ -174,19 +192,50 @@ contract('Crowdsale', (accounts) => {
          // 0.22 | 1 ETH -> 1 / (100+10) * 100 / 0.2 * 1000 = 4545,4545454545 MFL
          // 0.24 | 1 ETH -> 1 / (100+20) * 100 / 0.2 * 1000 = 4166,6666666667 MFL
          // 0.26 | 1 ETH -> 1 / (100+30) * 100 / 0.2 * 1000 = 3846,1538461538 MFL
-        await check_calcAmount(1e18, startTimeTLP2, wavesTokens, 8333.3333333333e18);
-        await check_calcAmount(1e18, startTimeTLP2 + duration.days(8), wavesTokens, 7142.8571428571e18);
+        await check_calcAmount(1e18, startTimeTLP2, 5555, 8333e18, 0);
+//        await check_calcAmount(1e18, startTimeTLP2, 5555, 8333.3333333333e18, 0);
+/*        await check_calcAmount(1e18, startTimeTLP2 + duration.days(8), wavesTokens, 7142.8571428571e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(15), wavesTokens, 6250e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(22), wavesTokens, 5555.5555555556e18);
-        await check_calcAmount(1e18, startTimeTLP2 + duration.days(29), wavesTokens, 5000e18);
+        await check_calcAmount(1e18, startTim4eTLP2 + duration.days(29), wavesTokens, 5000e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(36), wavesTokens, 4545.4545454545e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(43), wavesTokens, 4166.6666666667e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(50), wavesTokens, 3846.1538461538e18);
+*/
+//        await shouldHaveException(async () => {
+//            await check_calcAmount(1e18, startTimeTLP2 + duration.days(57), wavesTokens, 10000e18);
+//        }, "Should has an error");
+    });
+
+    it("setStartTimeTLP2 -> set and check", async() => {
+        let set_start_time_tlp2 = (await sale.SetStartTimeTLP2({fromBlock: 0, toBlock: 'latest'}))
+
+        let time1 = await sale.startTimeTLP2();
+        await sale.setStartTimeTLP2(startTimeTLP2 + duration.days(1));
+
+        set_start_time_tlp2.get((err, events) => {
+            assert.equal(events.length, 1);
+            assert.equal(events[0].event, 'SetStartTimeTLP2');
+        });
+
+        let time2 = await sale.startTimeTLP2();
+        assert.equal(time2-time1, duration.days(1));
+    });
+
+    it("setStartTimeTLP2 -> wrong owner", async() => {
+        let set_start_time_tlp2 = (await sale.SetStartTimeTLP2({fromBlock: 0, toBlock: 'latest'}))
 
         await shouldHaveException(async () => {
-            await check_calcAmount(1e18, startTimeTLP2 + duration.days(57), wavesTokens, 10000e18);
+            await sale.setStartTimeTLP2(startTimeTLP2 + duration.days(1), {from: client1});
         }, "Should has an error");
+
+        set_start_time_tlp2.get((err, events) => {
+            assert.equal(events.length, 0);
+        });
+
     });
+
+
  
 /*
     it("calcAmountAt -> golden tx", async() => {
@@ -680,34 +729,6 @@ contract('Crowdsale', (accounts) => {
 
     });
 
-    it("setStartTimeTLP2 -> set and check", async() => {
-        let set_start_time_tlp2 = (await sale.SetStartTimeTLP2({fromBlock: 0, toBlock: 'latest'}))
-
-        let time1 = await sale.startTimeTLP2();
-        await sale.setStartTimeTLP2(startTime2 + duration.days(1));
-
-        set_start_time_tlp2.get((err, events) => {
-            assert.equal(events.length, 1);
-            assert.equal(events[0].event, 'SetStartTimeTLP2');
-        });
-
-        let time2 = await sale.startTimeTLP2();
-        assert.equal(time2-time1, duration.days(1));
-    });
-
-    it("setStartTimeTLP2 -> wrong owner", async() => {
-        let set_start_time_tlp2 = (await sale.SetStartTimeTLP2({fromBlock: 0, toBlock: 'latest'}))
-
-
-        await shouldHaveException(async () => {
-            await sale.setStartTimeTLP2(startTime2 + duration.days(1), {from: client1});
-        }, "Should has an error");
-
-        set_start_time_tlp2.get((err, events) => {
-            assert.equal(events.length, 0);
-        });
-
-    });
 
     it("setFundMintingAgent -> good owner", async() => {
         let set_fund_minting_events = (await sale.SetFundMintingAgent({fromBlock: 0, toBlock: 'latest'}))

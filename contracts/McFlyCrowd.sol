@@ -43,10 +43,10 @@ contract McFlyCrowd is MultiOwners, Haltable {
     // start and end timestamp for TLP 1.2, endTimeTLP2 calculate from startTimeTLP2
     uint256 public startTimeTLP2;
     uint256 public endTimeTLP2;
-    uint256 daysTLP2 = 56 days;
+    uint256 public daysTLP2 = 56 days;
 
-    uint256 daysBetweenTLP = 60 days;
-    uint256 daysTLP3_7 = 12 days; // 12 days for 3,4,5,6,7 windows;
+    uint256 public daysBetweenTLP = 60 days;
+    uint256 public daysTLP3_7 = 12 days; // 12 days for 3,4,5,6,7 windows;
     // start and end timestamp for TLP 1.3, endTimeTLP3 calculate from startTimeTLP3
     uint256 public startTimeTLP3;
     uint256 public endTimeTLP3;
@@ -118,6 +118,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     // maximum possible tokens to convert from WAVES
     uint256 public wavesTokens = 100e24; // 100,000,000 MFL
     address public wavesAgent;
+    address public wavesGW;
 
     // Vesting for team, advisory, reserve.
     uint256 VestingPeriodInSeconds = 30 days; // 24 month
@@ -132,6 +133,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     // Bounty online 2%
     uint256 _bountyOnlineTokens;
     address public bountyOnlineWallet;
+    address public bountyOnlineGW;
 
     // Bounty offline 3%
     uint256 _bountyOfflineTokens;
@@ -150,6 +152,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     // AirDrop 1%
     uint256 _airdropTokens;
     address public airdropWallet;
+    address public airdropGW;
 
     // PreMcFly wallet (MFL)
     uint256 _preMcFlyTokens;
@@ -159,9 +162,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     event TokenPurchaseInWindow(address indexed beneficiary, uint256 value);
     event TransferOddEther(address indexed beneficiary, uint256 value);
     event FundMinting(address indexed beneficiary, uint256 value);
-    event TeamVesting(address indexed beneficiary, uint256 period, uint256 value);
-    event AdvisoryVesting(address indexed beneficiary, uint256 period, uint256 value);
-    event ReservedVesting(address indexed beneficiary, uint256 period, uint256 value);
+    event WithdrawVesting(address indexed beneficiary, uint256 period, uint256 value);
     event SetFundMintingAgent(address new_agent);
     event SetStartTimeTLP2(uint256 new_startTimeTLP2);
 
@@ -181,26 +182,32 @@ contract McFlyCrowd is MultiOwners, Haltable {
         uint256 _preMcFlyTotalSupply,
         address _wallet,
         address _wavesAgent,
+        address _wavesGW,
         address _fundMintingAgent,
         address _teamWallet,
         address _bountyOnlineWallet,
+        address _bountyOnlineGW,
         address _bountyOfflineWallet,
         address _advisoryWallet,
         address _reservedWallet,
         address _airdropWallet,
+        address _airdropGW,
         address _preMcFlyWallet
     ) public {
         require(_startTimeTLP2 >= block.timestamp);
         require(_preMcFlyTotalSupply > 0);
         require(_wallet != 0x0);
         require(_wavesAgent != 0x0);
+        require(_wavesGW != 0x0);
         require(_fundMintingAgent != 0x0);
         require(_teamWallet != 0x0);
         require(_bountyOnlineWallet != 0x0);
+        require(_bountyOnlineGW != 0x0);
         require(_bountyOfflineWallet != 0x0);
         require(_advisoryWallet != 0x0);
         require(_reservedWallet != 0x0);
         require(_airdropWallet != 0x0);
+        require(_airdropGW != 0x0);
         require(_preMcFlyWallet != 0x0);
 
         token = new McFlyToken();
@@ -210,14 +217,18 @@ contract McFlyCrowd is MultiOwners, Haltable {
         setStartEndTimeTLP(_startTimeTLP2); 
 
         wavesAgent = _wavesAgent;
+        wavesGW = _wavesGW;
+
         fundMintingAgent = _fundMintingAgent;
 
         teamWallet = _teamWallet;
         bountyOnlineWallet = _bountyOnlineWallet;
+        bountyOnlineGW = _bountyOnlineGW;
         bountyOfflineWallet = _bountyOfflineWallet;
         advisoryWallet = _advisoryWallet;
         reservedWallet = _reservedWallet;
         airdropWallet = _airdropWallet;
+        airdropGW = _airdropGW;
         preMcFlyWallet = _preMcFlyWallet;
 
         // Mint all tokens and than control it by vesting
@@ -228,6 +239,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
         token.mint(wavesAgent, wavesTokens); // 100,000,000 MFL
         token.allowTransfer(wavesAgent);
+        token.allowTransfer(wavesGW);
         crowdTokensTLP2 = crowdTokensTLP2.add(wavesTokens);
 
         // rewards !!!!
@@ -237,6 +249,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
         _bountyOnlineTokens = 36e24; // 36,000,000 MFL
         token.mint(bountyOnlineWallet, _bountyOnlineTokens);
         token.allowTransfer(bountyOnlineWallet);
+        token.allowTransfer(bountyOnlineGW);
 
         _bountyOfflineTokens = 54e24; // 54,000,000 MFL
         token.mint(bountyOfflineWallet, _bountyOfflineTokens);
@@ -251,6 +264,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
         _airdropTokens = 18e24; // 18,000,000 MFL
         token.mint(airdropWallet, _airdropTokens);
         token.allowTransfer(airdropWallet);
+        token.allowTransfer(airdropGW);
     }
 
     function withinPeriod() constant public returns (bool) {
@@ -291,6 +305,10 @@ contract McFlyCrowd is MultiOwners, Haltable {
             return _preMcFlyTokens;
     }
 
+    function test123() constant public returns (uint256) {
+            return startTimeTLP2;
+    }
+
     // @return current stage name
     function stageName() constant public returns (string) {
         bool beforePeriodTLP2 = (now < startTimeTLP2);
@@ -311,6 +329,8 @@ contract McFlyCrowd is MultiOwners, Haltable {
         
         bool betweenPeriodTLP6andTLP7 = (now >= endTimeTLP6 && now <= startTimeTLP7);
         bool withinPeriodTLP7 = (now >= startTimeTLP7 && now <= endTimeTLP7);
+
+        bool afterPeriodTLP7 = (now > endTimeTLP7);
     
         if(beforePeriodTLP2) {
             return 'Not started';
@@ -348,8 +368,10 @@ contract McFlyCrowd is MultiOwners, Haltable {
         if(withinPeriodTLP7) {
             return 'TLP1.7';
         }
-
-        return 'Finished';
+        if(afterPeriodTLP7) {
+            return 'Finished';
+        }
+        return 'unknown';
     }
 
     // get info about ppls at window 1-5
@@ -503,8 +525,6 @@ contract McFlyCrowd is MultiOwners, Haltable {
         uint256 price;
 
         if(at >= startTimeTLP2 && at <= endTimeTLP2) {
-            // require(amount >= minimalWeiTLP2); // checks min ETH income for 1 transaction
-
             if(at < startTimeTLP2 + 7 days) {
                 price = 12e13; // (1 McFly=0.00012)     0.00012   RECHECK !!!!!!!!!!!!!!!!!!! 5ETH*1e18/12e13=41666/5=8333,33McFly
             } else if(at < startTimeTLP2 + 14 days) {
@@ -538,6 +558,15 @@ contract McFlyCrowd is MultiOwners, Haltable {
         }
         return (estimate.sub(_totalSupply), 0);
     }
+/*
+    function addEthToArr(address contributor, uint256 amountEth, ppls, pplAcct, window, windowCnt) {
+        var ppl1 = ppls1[contributor];
+        ppl1.eth_in = amountEth;
+        pplAccts1.push(contributor) -1;
+        window1 = window1.add(msg.value);
+        window1_cnt++;
+    }
+*/
 
     /*
      * @dev sell token and send to contributor address
@@ -694,61 +723,35 @@ contract McFlyCrowd is MultiOwners, Haltable {
     
     }
 
-    function teamWithdraw() public {
+    function vestingWithdraw(address withdrawWallet, uint256 withdrawTokens, uint256 withdrawTotalSupply) public {
         require(token.mintingFinished());
-        require(msg.sender == teamWallet || isOwner());
+        require(msg.sender == withdrawWallet || isOwner());
 
         uint256 currentPeriod = (block.timestamp).sub(endTimeTLP2).div(VestingPeriodInSeconds);
         if(currentPeriod > VestingPeriodsCount) {
             currentPeriod = VestingPeriodsCount;
         }
-        uint256 tokenAvailable = _teamTokens.mul(currentPeriod).div(VestingPeriodsCount).sub(teamTotalSupply);  // RECHECK!!!!!
+        uint256 tokenAvailable = withdrawTokens.mul(currentPeriod).div(VestingPeriodsCount).sub(withdrawTotalSupply);  // RECHECK!!!!!
 
-        require(teamTotalSupply + tokenAvailable <= _teamTokens);
+        require(withdrawTotalSupply + tokenAvailable <= withdrawTokens);
 
-        teamTotalSupply = teamTotalSupply.add(tokenAvailable);
+        withdrawTotalSupply = withdrawTotalSupply.add(tokenAvailable);
 
-        TeamVesting(teamWallet, currentPeriod, tokenAvailable);
-        token.transfer(teamWallet, tokenAvailable);
+	WithdrawVesting(withdrawWallet, currentPeriod, tokenAvailable);
+        token.transfer(withdrawWallet, tokenAvailable);
+    }
 
+
+    function teamWithdraw() public {
+	vestingWithdraw(teamWallet, _teamTokens, teamTotalSupply);
     }
 
     function advisoryWithdraw() public {
-        require(token.mintingFinished());
-        require(msg.sender == advisoryWallet || isOwner());
-
-        uint256 currentPeriod = (block.timestamp).sub(endTimeTLP2).div(VestingPeriodInSeconds);
-        if(currentPeriod > VestingPeriodsCount) {
-            currentPeriod = VestingPeriodsCount;
-        }
-        uint256 tokenAvailable = _advisoryTokens.mul(currentPeriod).div(VestingPeriodsCount).sub(advisoryTotalSupply);  // RECHECK!!!!!
-
-        require(advisoryTotalSupply + tokenAvailable <= _advisoryTokens);
-
-        advisoryTotalSupply = advisoryTotalSupply.add(tokenAvailable);
-
-        AdvisoryVesting(advisoryWallet, currentPeriod, tokenAvailable);
-        token.transfer(advisoryWallet, tokenAvailable);
-
+	vestingWithdraw(advisoryWallet, _advisoryTokens, advisoryTotalSupply);
     }
 
     function reservedWithdraw() public {
-        require(token.mintingFinished());
-        require(msg.sender == reservedWallet || isOwner());
-
-        uint256 currentPeriod = (block.timestamp).sub(endTimeTLP2).div(VestingPeriodInSeconds);
-        if(currentPeriod > VestingPeriodsCount) {
-            currentPeriod = VestingPeriodsCount;
-        }
-        uint256 tokenAvailable = _reservedTokens.mul(currentPeriod).div(VestingPeriodsCount).sub(reservedTotalSupply);  // RECHECK!!!!!
-
-        require(reservedTotalSupply + tokenAvailable <= _reservedTokens);
-
-        reservedTotalSupply = reservedTotalSupply.add(tokenAvailable);
-
-        ReservedVesting(reservedWallet, currentPeriod, tokenAvailable);
-        token.transfer(reservedWallet, tokenAvailable);
-
+	vestingWithdraw(reservedWallet, _reservedTokens, reservedTotalSupply);
     }
 
 
@@ -756,7 +759,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
         require(now > endTimeTLP2 || hardCapInTokens == token.totalSupply());
         require(!token.mintingFinished());
 
-        windowsCapInTokens = crowdTokensTLP2.add(fundTotalSupply);
+        windowsCapInTokens = mintCapInTokens.sub(crowdTokensTLP2).sub(fundTotalSupply);
         window1CapInTokens = windowsCapInTokens.div(5);
         window2CapInTokens = windowsCapInTokens.div(5);
         window3CapInTokens = windowsCapInTokens.div(5);
