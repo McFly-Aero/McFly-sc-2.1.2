@@ -1,9 +1,9 @@
 pragma solidity ^0.4.19;
 
-import './SafeMath.sol';
-import './McFlyToken.sol';
-import './Haltable.sol';
-import './MultiOwners.sol';
+import "./SafeMath.sol";
+import "./McFlyToken.sol";
+import "./Haltable.sol";
+import "./MultiOwners.sol";
 
 
 contract McFlyCrowd is MultiOwners, Haltable {
@@ -164,7 +164,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     event FundMinting(address indexed beneficiary, uint256 value);
     event WithdrawVesting(address indexed beneficiary, uint256 period, uint256 value);
     event SetFundMintingAgent(address new_agent);
-    event SetStartTimeTLP2(uint256 new_startTimeTLP2);
+    event SetStartTimeTLP2(uint256 startTimeTLP2);
 
 
     modifier validPurchase() {
@@ -214,7 +214,8 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
         wallet = _wallet;
 
-        setStartEndTimeTLP(_startTimeTLP2); 
+	startTimeTLP2 = _startTimeTLP2;
+        setStartEndTimeTLP(_startTimeTLP2);
 
         wavesAgent = _wavesAgent;
         wavesGW = _wavesGW;
@@ -305,73 +306,36 @@ contract McFlyCrowd is MultiOwners, Haltable {
             return _preMcFlyTokens;
     }
 
-    function test123() constant public returns (uint256) {
-            return startTimeTLP2;
-    }
-
     // @return current stage name
     function stageName() constant public returns (string) {
         bool beforePeriodTLP2 = (now < startTimeTLP2);
-        
         bool withinPeriodTLP2 = (now >= startTimeTLP2 && now <= endTimeTLP2);
         bool betweenPeriodTLP2andTLP3 = (now >= endTimeTLP2 && now <= startTimeTLP3);
-        
         bool withinPeriodTLP3 = (now >= startTimeTLP3 && now <= endTimeTLP3);
-        
         bool betweenPeriodTLP3andTLP4 = (now >= endTimeTLP3 && now <= startTimeTLP4);
         bool withinPeriodTLP4 = (now >= startTimeTLP4 && now <= endTimeTLP4);
-        
         bool betweenPeriodTLP4andTLP5 = (now >= endTimeTLP4 && now <= startTimeTLP5);
         bool withinPeriodTLP5 = (now >= startTimeTLP5 && now <= endTimeTLP5);
-        
         bool betweenPeriodTLP5andTLP6 = (now >= endTimeTLP5 && now <= startTimeTLP6);
         bool withinPeriodTLP6 = (now >= startTimeTLP6 && now <= endTimeTLP6);
-        
         bool betweenPeriodTLP6andTLP7 = (now >= endTimeTLP6 && now <= startTimeTLP7);
         bool withinPeriodTLP7 = (now >= startTimeTLP7 && now <= endTimeTLP7);
-
         bool afterPeriodTLP7 = (now > endTimeTLP7);
     
-        if(beforePeriodTLP2) {
-            return 'Not started';
-        }
-        if(withinPeriodTLP2) {
-            return 'TLP1.2';
-        } 
-        if(betweenPeriodTLP2andTLP3) {
-            return 'Between TLP1.2 and TLP1.3';
-        }
-        if(withinPeriodTLP3) {
-            return 'TLP1.3';
-        }
-        if(betweenPeriodTLP3andTLP4) {
-            return 'Between TLP1.3 and TLP1.4';
-        }
-        if(withinPeriodTLP4) {
-            return 'TLP1.4';
-        }
-        if(betweenPeriodTLP4andTLP5) {
-            return 'Between TLP1.4 and TLP1.5';
-        }
-        if(withinPeriodTLP5) {
-            return 'TLP1.5';
-        }
-        if(betweenPeriodTLP5andTLP6) {
-            return 'Between TLP1.5 and TLP1.6';
-        }
-        if(withinPeriodTLP6) {
-            return 'TLP1.6';
-        }
-        if(betweenPeriodTLP6andTLP7) {
-            return 'Between TLP1.6 and TLP1.7';
-        }
-        if(withinPeriodTLP7) {
-            return 'TLP1.7';
-        }
-        if(afterPeriodTLP7) {
-            return 'Finished';
-        }
-        return 'unknown';
+        if (beforePeriodTLP2) { return "Not started"; }
+        if (withinPeriodTLP2) { return "TLP1.2"; } 
+        if (betweenPeriodTLP2andTLP3) { return "Between TLP1.2 and TLP1.3"; }
+        if (withinPeriodTLP3) { return "TLP1.3"; }
+        if (betweenPeriodTLP3andTLP4) { return "Between TLP1.3 and TLP1.4"; }
+        if (withinPeriodTLP4) { return "TLP1.4"; }
+        if (betweenPeriodTLP4andTLP5) { return "Between TLP1.4 and TLP1.5"; }
+        if (withinPeriodTLP5) { return "TLP1.5"; }
+        if (betweenPeriodTLP5andTLP6) { return "Between TLP1.5 and TLP1.6"; }
+        if (withinPeriodTLP6) { return "TLP1.6"; }
+        if (betweenPeriodTLP6andTLP7) { return "Between TLP1.6 and TLP1.7"; }
+        if (withinPeriodTLP7) { return "TLP1.7"; }
+        if (afterPeriodTLP7) { return "Finished"; }
+        return "unknown";
     }
 
     // get info about ppls at window 1-5
@@ -460,12 +424,17 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
     /*
-     * @dev set TLP1.X (3-7) start & end dates
+     * @dev set TLP1.X (2-7) start & end dates
      * @param _at - new or old start date
      */
     function setStartEndTimeTLP(uint256 _at) onlyOwner public {
+        require(block.timestamp < startTimeTLP2); // forbid change time when TLP1.2 is active
+        require(block.timestamp < _at); // should be great than current block timestamp
+
+        startTimeTLP2 = _at;
+        endTimeTLP2 = startTimeTLP2.add(daysTLP2);
         SetStartTimeTLP2(_at);
-        
+
         // sets start and end timestamp for TLP 1.3, endTimeTLP3 calculate from startTimeTLP3
         startTimeTLP3 = endTimeTLP2.add(daysBetweenTLP);
         endTimeTLP3 = startTimeTLP3.add(daysTLP3_7);
@@ -479,19 +448,6 @@ contract McFlyCrowd is MultiOwners, Haltable {
         endTimeTLP7 = startTimeTLP7.add(daysTLP3_7);
     }
 
-    /*
-     * @dev set TLP1.2 start date
-     * @param _at - new start date
-     */
-    function setStartTimeTLP2(uint256 _at) onlyOwner public {
-        require(block.timestamp < startTimeTLP2); // forbid change time when TLP1.2 is active
-        require(block.timestamp < _at); // should be great than current block timestamp
-
-        startTimeTLP2 = _at;
-        endTimeTLP2 = startTimeTLP2.add(daysTLP2);
-        SetStartTimeTLP2(_at);
-    }
-    
     /*
      * @dev Large Token Holder minting 
      * @param to - mint to address
@@ -728,7 +684,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
         require(msg.sender == withdrawWallet || isOwner());
 
         uint256 currentPeriod = (block.timestamp).sub(endTimeTLP2).div(VestingPeriodInSeconds);
-        if(currentPeriod > VestingPeriodsCount) {
+        if (currentPeriod > VestingPeriodsCount) {
             currentPeriod = VestingPeriodsCount;
         }
         uint256 tokenAvailable = withdrawTokens.mul(currentPeriod).div(VestingPeriodsCount).sub(withdrawTotalSupply);  // RECHECK!!!!!

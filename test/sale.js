@@ -135,12 +135,17 @@ contract('Crowdsale', (accounts) => {
         );
     });
   
+/*    it("running -> check startTimeTLP2 value", async() => {
+	let date1 = (await sale.startTimeTLP2({from: owner})).toNumber();
+	let date2 = (await sale.endTimeTLP2({from: owner})).toNumber();
+	console.log(date1);
+	console.log(date2);
+	assert.notEqual(date1, null);
+        assert.equal(date1.toNumber() > 0, true);
+    });
+*/
     it("running -> check ITO is started", async() => {
         assert.equal((await sale.running({from: owner})), false);
-	let date1 = await sale.startTimeTLP2({from: owner});
-	assert.equal(date1, '111');
-	assert.equal((await sale.test123()).toNumber(), '111');
-//	assert.equal((web3.eth.getBlock('latest').timestamp+duration.weeks(1)), (await sale.test123()));
         assert.equal((await sale.stageName()), 'Not started');
         await increaseTime(duration.days(15));
         assert.equal((await sale.stageName()), 'TLP1.2');
@@ -192,26 +197,26 @@ contract('Crowdsale', (accounts) => {
          // 0.22 | 1 ETH -> 1 / (100+10) * 100 / 0.2 * 1000 = 4545,4545454545 MFL
          // 0.24 | 1 ETH -> 1 / (100+20) * 100 / 0.2 * 1000 = 4166,6666666667 MFL
          // 0.26 | 1 ETH -> 1 / (100+30) * 100 / 0.2 * 1000 = 3846,1538461538 MFL
-        await check_calcAmount(1e18, startTimeTLP2, 5555, 8333e18, 0);
-//        await check_calcAmount(1e18, startTimeTLP2, 5555, 8333.3333333333e18, 0);
-/*        await check_calcAmount(1e18, startTimeTLP2 + duration.days(8), wavesTokens, 7142.8571428571e18);
+//        await check_calcAmount(1e18, startTimeTLP2, 5555, 8333e18, 0);
+        await check_calcAmount(1e18, startTimeTLP2, 5555, 8333.3333333333e18);
+        await check_calcAmount(1e18, startTimeTLP2 + duration.days(8), wavesTokens, 7142.8571428571e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(15), wavesTokens, 6250e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(22), wavesTokens, 5555.5555555556e18);
-        await check_calcAmount(1e18, startTim4eTLP2 + duration.days(29), wavesTokens, 5000e18);
+        await check_calcAmount(1e18, startTimeTLP2 + duration.days(29), wavesTokens, 5000e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(36), wavesTokens, 4545.4545454545e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(43), wavesTokens, 4166.6666666667e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(50), wavesTokens, 3846.1538461538e18);
-*/
-//        await shouldHaveException(async () => {
-//            await check_calcAmount(1e18, startTimeTLP2 + duration.days(57), wavesTokens, 10000e18);
-//        }, "Should has an error");
+
+        await shouldHaveException(async () => {
+            await check_calcAmount(1e18, startTimeTLP2 + duration.days(57), wavesTokens, 10000e18);
+        }, "Should has an error");
     });
 
-    it("setStartTimeTLP2 -> set and check", async() => {
+    it("setStartEndTimeTLP2 -> set and check", async() => {
         let set_start_time_tlp2 = (await sale.SetStartTimeTLP2({fromBlock: 0, toBlock: 'latest'}))
 
         let time1 = await sale.startTimeTLP2();
-        await sale.setStartTimeTLP2(startTimeTLP2 + duration.days(1));
+        await sale.setStartEndTimeTLP(startTimeTLP2 + duration.days(1));
 
         set_start_time_tlp2.get((err, events) => {
             assert.equal(events.length, 1);
@@ -226,7 +231,7 @@ contract('Crowdsale', (accounts) => {
         let set_start_time_tlp2 = (await sale.SetStartTimeTLP2({fromBlock: 0, toBlock: 'latest'}))
 
         await shouldHaveException(async () => {
-            await sale.setStartTimeTLP2(startTimeTLP2 + duration.days(1), {from: client1});
+            await sale.setStartEndTimeTLP(startTimeTLP2 + duration.days(1), {from: client1});
         }, "Should has an error");
 
         set_start_time_tlp2.get((err, events) => {
