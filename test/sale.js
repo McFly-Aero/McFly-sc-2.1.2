@@ -28,7 +28,7 @@ contract('Crowdsale', (accounts) => {
     let preMcFlyWallet;
     let wavesTokens = 100e24;
 
-    let preMcFlyTotalSupply = 11e24;
+    let preMcFlyTotalSupply = 55e24;
     let totalSupply = 1260e24;
 
 
@@ -128,16 +128,16 @@ contract('Crowdsale', (accounts) => {
             bountyOfflineWallet,
             advisoryWallet,                                                             
             reservedWallet,
-	    airdropWallet,
-	    airdropGW,
-	    preMcFlyWallet
+	        airdropWallet,
+	        airdropGW,
+	        preMcFlyWallet
         );
         token = await Token.at(await sale.token());
     })
 
     it("token.totalSupply -> Check balance and totalSupply before donate", async () => {
         assert.equal((await token.balanceOf(client1)).toNumber(), 0, "balanceOf must be 0 on the start");
-        assert.equal((await token.totalSupply()).toNumber(), 651e24, "totalSupply must be 0 on the start"
+        assert.equal((await token.totalSupply()).toNumber(), 695e24, "totalSupply must be 695 on the start"
         );
     });
   
@@ -195,12 +195,12 @@ contract('Crowdsale', (accounts) => {
     });
 
     it("running -> check tokens minted to wallets at start", async() => {
-        assert.equal((totalSupply/70/1e18*2).toFixed(4), ((await token.balanceOf(bountyOnlineWallet))/1e18).toFixed(4), 'bounty online wallet balance');
-        assert.equal((totalSupply/70/1e18*3).toFixed(4), ((await token.balanceOf(bountyOfflineWallet))/1e18).toFixed(4), 'bounty offline wallet balance');
-        assert.equal((totalSupply/70/1e18*1).toFixed(4), ((await token.balanceOf(airdropWallet))/1e18).toFixed(4), 'airdrop wallet balance');
-        assert.equal((preMcFlyTotalSupply/1e18).toFixed(4), ((await token.balanceOf(preMcFlyWallet))/1e18).toFixed(4), 'preMcFly wallet balance');
-        assert.equal((wavesTokens/1e18).toFixed(4), ((await token.balanceOf(wavesAgent))/1e18).toFixed(4), 'waves wallet balance');
-        assert.equal((432000000/1e18).toFixed(4), ((await token.balanceOf(owner))/1e18).toFixed(4), 'team wallet balance');
+        assert.equal((36000000).toFixed(4), ((await token.balanceOf(bountyOnlineWallet))/1e18).toFixed(4), 'bounty online wallet balance');
+        assert.equal((54000000).toFixed(4), ((await token.balanceOf(bountyOfflineWallet))/1e18).toFixed(4), 'bounty offline wallet balance');
+        assert.equal((18000000).toFixed(4), ((await token.balanceOf(airdropWallet))/1e18).toFixed(4), 'airdrop wallet balance');
+        assert.equal((55000000).toFixed(4), ((await token.balanceOf(preMcFlyWallet))/1e18).toFixed(4), 'preMcFly wallet balance');
+        assert.equal((100000000).toFixed(4), ((await token.balanceOf(wavesAgent))/1e18).toFixed(4), 'waves wallet balance');
+        assert.equal((432000000).toFixed(4), ((await token.balanceOf(sale.address))/1e18).toFixed(4), 'this wallet balance');
     });
  
     it("calcAmountAt -> TLP2", async() => {
@@ -257,6 +257,32 @@ contract('Crowdsale', (accounts) => {
         });
 
     });
+
+    it("setFundMintingAgent -> good owner", async() => {
+        let set_fund_minting_events = (await sale.SetFundMintingAgent({fromBlock: 0, toBlock: 'latest'}))
+
+        await sale.setFundMintingAgent(client2);
+
+        set_fund_minting_events.get((err, events) => {
+            assert.equal(events.length, 1);
+            assert.equal(events[0].event, 'SetFundMintingAgent');
+        });
+
+    });
+
+    it("setFundMintingAgent -> wrong owner", async() => {
+        let set_fund_minting_events = (await sale.SetFundMintingAgent({fromBlock: 0, toBlock: 'latest'}))
+
+        await shouldHaveException(async () => {
+            await sale.setFundMintingAgent(client2, {from: client1});
+        }, "Should has an error");
+
+        set_fund_minting_events.get((err, events) => {
+            assert.equal(events.length, 0);
+        });
+
+    });
+
 
 /*    it("calcAmountAt -> golden tx", async() => {
         let mintCapInTokens = await sale.mintCapInTokens();
@@ -337,7 +363,7 @@ contract('Crowdsale', (accounts) => {
     });
 
 /*
-    it("getTokens -> received lower than 0.01 ether", async() => {
+    it("getTokens -> token transfer", async() => {
 
         await increaseTime(duration.weeks(1));
 
@@ -754,31 +780,6 @@ contract('Crowdsale', (accounts) => {
 
     });
 
-
-    it("setFundMintingAgent -> good owner", async() => {
-        let set_fund_minting_events = (await sale.SetFundMintingAgent({fromBlock: 0, toBlock: 'latest'}))
-
-        await sale.setFundMintingAgent(client2);
-
-        set_fund_minting_events.get((err, events) => {
-            assert.equal(events.length, 1);
-            assert.equal(events[0].event, 'SetFundMintingAgent');
-        });
-
-    });
-
-    it("setFundMintingAgent -> wrong owner", async() => {
-        let set_fund_minting_events = (await sale.SetFundMintingAgent({fromBlock: 0, toBlock: 'latest'}))
-
-        await shouldHaveException(async () => {
-            await sale.setFundMintingAgent(client2, {from: client1});
-        }, "Should has an error");
-
-        set_fund_minting_events.get((err, events) => {
-            assert.equal(events.length, 0);
-        });
-
-    });
 */
 
 });

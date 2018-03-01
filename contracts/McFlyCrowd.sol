@@ -366,7 +366,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
         estimate = _totalSupply.add(amount.mul(1e18).div(price));
 
-        if(estimate > hardCapInTokens) {
+        if (estimate > hardCapInTokens) {
             return (
                 hardCapInTokens.sub(_totalSupply),
                 estimate.sub(hardCapInTokens).mul(price).div(1e18)
@@ -403,7 +403,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
         
         __at = block.timestamp;
 
-        require(contributor != 0x0) ;
+        require(contributor != 0x0);
        
         if (withinPeriod()) {
         
