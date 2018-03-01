@@ -16,8 +16,9 @@
                 "--timeout",
                 "999999",
                 "--colors",
-                "--require",
-                "babel-register",
+                "--compilers",
+                "babel-core/register",
+                "babel-preset-es2015",
                 "${workspaceFolder}/test/"
             ],
             "internalConsoleOptions": "openOnSessionStart"

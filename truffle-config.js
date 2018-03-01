@@ -7,8 +7,8 @@ require('babel-register')({
  });
 
 
-//var provider;
-//var HDWalletProvider = require('truffle-hdwallet-provider');
+var provider;
+var HDWalletProvider = require('truffle-hdwallet-provider');
 //var private = '[REDACTED]';
 
 //if (!process.env.SOLIDITY_COVERAGE){
@@ -20,10 +20,11 @@ module.exports = {
     networks: {
         local: {
             host: 'localhost',
-            port: 7545,
+            port: 8545,
             network_id: '*',
-            gas: 100712388, // <-- Use this high gas value  
-            gasPrice: 100000000000       // <-- Use this low gas price 
+            gas: 10000000, // <-- Use this high gas value  
+            gasPrice: 1       // <-- Use this low gas price 
+//	    provider: new HDWalletProvider(mnemonic, "http://127.0.0.1:9545/")
         },
         local_geth: {
             host: 'localhost',
@@ -38,6 +39,11 @@ module.exports = {
     },
     build: "webpack"
 };
+
+solc: { 
+	optimizer: 
+		{ enabled: true }
+}
 
 mocha: {
   useColors: true

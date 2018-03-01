@@ -31,12 +31,13 @@ contract McFlyToken is MintableToken {
         return super.transfer(to, value);
     }
 
-    function burn(address from) onlyOwner public returns (bool) {
+/*    function burn(address from) onlyOwner public returns (bool) {
         Transfer(from, 0x0, balances[from]);
         Burn(from, balances[from]);
 
         balances[0x0] += balances[from];
         balances[from] = 0;
     }
+*/    
 }
 

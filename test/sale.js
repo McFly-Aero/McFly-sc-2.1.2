@@ -93,6 +93,12 @@ contract('Crowdsale', (accounts) => {
         assert.equal(odd_ethers, should_odd_ethers, textOdd);
     };
 
+    let check_tlp = async (stageName, num, name) => {
+        let result = (await sale.stageName());
+        assert.equal(result[0].toNumber(),num);
+        assert.equal(result[1].toString(),name);
+    }
+
     beforeEach(async function () {
 //        startTimeTLP2 = web3.eth.getBlock('latest').timestamp + duration.weeks(1);
         startTimeTLP2 = latestTime() + duration.weeks(1);
@@ -114,7 +120,7 @@ contract('Crowdsale', (accounts) => {
             preMcFlyTotalSupply,
             wallet,
             wavesAgent,
-	    wavesGW,
+            wavesGW,
             fundMintingAgent,
             teamWallet,
             bountyOnlineWallet,
@@ -135,53 +141,65 @@ contract('Crowdsale', (accounts) => {
         );
     });
   
-/*    it("running -> check startTimeTLP2 value", async() => {
-	let date1 = (await sale.startTimeTLP2({from: owner})).toNumber();
-	let date2 = (await sale.endTimeTLP2({from: owner})).toNumber();
-	console.log(date1);
-	console.log(date2);
-	assert.notEqual(date1, null);
-        assert.equal(date1.toNumber() > 0, true);
+    it("running -> check startTimeTLP2 and endTimeTLP2 value", async() => {
+    	let date1 = (await sale.startTimeTLP2()).toNumber();
+    	let date2 = (await sale.endTimeTLP2()).toNumber();
+	    assert.notEqual(date1, null);
+        assert.equal(date2-date1, duration.days(56));
     });
-*/
+
+    /*
+   if (beforePeriodTLP2) {return (101, "Not started");}
+        if (withinPeriodTLP2) {return (102, "TLP1.2");} 
+        if (betweenPeriodTLP2andTLP3) {return (103, "preTLP1.3");}
+        if (withinPeriodTLP3) {return (0, "TLP1.3");}
+        if (betweenPeriodTLP3andTLP4) {return (104, "preTLP1.4");}
+        if (withinPeriodTLP4) {return (1, "TLP1.4");}
+        if (betweenPeriodTLP4andTLP5) {return (105, "preTLP1.5");}
+        if (withinPeriodTLP5) {return (2, "TLP1.5");}
+        if (betweenPeriodTLP5andTLP6) {return (106, "preTLP1.6");}
+        if (withinPeriodTLP6) {return (3, "TLP1.6");}
+        if (betweenPeriodTLP6andTLP7) {return (107, "preTLP1.7");}
+        if (withinPeriodTLP7) {return (4, "TLP1.7");}
+        if (afterPeriodTLP7) {return (200, "Finished");}
+        return (201, "unknown");
+    */
     it("running -> check ITO is started", async() => {
         assert.equal((await sale.running({from: owner})), false);
-        assert.equal((await sale.stageName()), 'Not started');
-        await increaseTime(duration.days(15));
-        assert.equal((await sale.stageName()), 'TLP1.2');
+        await check_tlp(sale.stageName(),101,'Not started');
+        await increaseTime(duration.days(7));
         assert.equal((await sale.running()), true);
+        await check_tlp(sale.stageName(),102,'TLP1.2');
+        await increaseTime(duration.days(56));
+        await check_tlp(sale.stageName(),103,'preTLP1.3');
+        await increaseTime(duration.days(60));
+        await check_tlp(sale.stageName(),0,'TLP1.3');
+        await increaseTime(duration.days(12));
+        await check_tlp(sale.stageName(),104,'preTLP1.4');
+        await increaseTime(duration.days(60));
+        await check_tlp(sale.stageName(),1,'TLP1.4');
+        await increaseTime(duration.days(12));
+        await check_tlp(sale.stageName(),105,'preTLP1.5');
+        await increaseTime(duration.days(60));
+        await check_tlp(sale.stageName(),2,'TLP1.5');
+        await increaseTime(duration.days(12));
+        await check_tlp(sale.stageName(),106,'preTLP1.6');
+        await increaseTime(duration.days(60));
+        await check_tlp(sale.stageName(),3,'TLP1.6');
+        await increaseTime(duration.days(12));
+        await check_tlp(sale.stageName(),107,'preTLP1.7');
+        await increaseTime(duration.days(60));
+        await check_tlp(sale.stageName(),4,'TLP1.7');
+        await increaseTime(duration.days(12));
+        await check_tlp(sale.stageName(),200,'Finished');
     });
 
     it("running -> check tokens minted to wallets at start", async() => {
-/*        _teamTokens = 180e24; // 180,000,000 MFL
-        _bountyOnlineTokens = 36e24; // 36,000,000 MFL
-        token.allowTransfer(bountyOnlineWallet);
-        _bountyOfflineTokens = 54e24; // 54,000,000 MFL
-        token.allowTransfer(bountyOfflineWallet);
-        _advisoryTokens = 90e24; // 90,000,000 MFL
-        _reservedTokens = 162e24; // 162,000,000 MFL
-        _airdropTokens = 18e24; // 18,000,000 MFL
-        token.allowTransfer(airdropWallet);
-*/
-        assert.equal((totalSupply/70/1e18*10).toFixed(4), ((await sale.teamTokens())/1e18).toFixed(4), 'team tokens');
-
-        assert.equal((totalSupply/70/1e18*2).toFixed(4), ((await sale.bountyOnlineTokens())/1e18).toFixed(4), 'bounty online tokens');
         assert.equal((totalSupply/70/1e18*2).toFixed(4), ((await token.balanceOf(bountyOnlineWallet))/1e18).toFixed(4), 'bounty online wallet balance');
-
-        assert.equal((totalSupply/70/1e18*3).toFixed(4), ((await sale.bountyOfflineTokens())/1e18).toFixed(4), 'bounty offline tokens');
         assert.equal((totalSupply/70/1e18*3).toFixed(4), ((await token.balanceOf(bountyOfflineWallet))/1e18).toFixed(4), 'bounty offline wallet balance');
-
-        assert.equal((totalSupply/70/1e18*5).toFixed(4), ((await sale.advisoryTokens())/1e18).toFixed(4), 'advisory tokens');
-
-        assert.equal((totalSupply/70/1e18*9).toFixed(4), ((await sale.reservedTokens())/1e18).toFixed(4), 'reserved tokens');
-
-        assert.equal((totalSupply/70/1e18*1).toFixed(4), ((await sale.airdropTokens())/1e18).toFixed(4), 'airdrop tokens');
         assert.equal((totalSupply/70/1e18*1).toFixed(4), ((await token.balanceOf(airdropWallet))/1e18).toFixed(4), 'airdrop wallet balance');
-
         assert.equal((preMcFlyTotalSupply/1e18).toFixed(4), ((await token.balanceOf(preMcFlyWallet))/1e18).toFixed(4), 'preMcFly wallet balance');
- 
         assert.equal((wavesTokens/1e18).toFixed(4), ((await token.balanceOf(wavesAgent))/1e18).toFixed(4), 'waves wallet balance');
-
         assert.equal((432000000/1e18).toFixed(4), ((await token.balanceOf(owner))/1e18).toFixed(4), 'team wallet balance');
     });
  
@@ -240,18 +258,15 @@ contract('Crowdsale', (accounts) => {
 
     });
 
-
- 
-/*
-    it("calcAmountAt -> golden tx", async() => {
+/*    it("calcAmountAt -> golden tx", async() => {
         let mintCapInTokens = await sale.mintCapInTokens();
         await check_calcAmount(80000e18, startTimeTLP2, wavesTokens, mintCapInTokens-wavesTokens, 4600e18);
     });
-
+*/
     it("token.transfer -> forbid transfer and transferFrom until ITO", async() => {
-        await increaseTime(duration.weeks(1));
+        await increaseTime(duration.weeks(2));
         await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e18});
-
+  
         await shouldHaveException(async () => {
             await token.transfer(client1, 1e8, {from: client1});
         }, "Should has an error");
@@ -266,15 +281,20 @@ contract('Crowdsale', (accounts) => {
     });
 
     it("token.transfer -> allow transfer token after ITO", async () => {
+        let tokenBefore, tokenAfter;
+
         await increaseTime(duration.weeks(1));
 
         await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e18});
         await increaseTime(duration.days(60));
-        await sale.finishCrowdsale();
+        await sale.finishCrowd();
 
         assert.equal((await token.mintingFinished()), true, 'token.mintingFinished should true');
 
+        tokenBefore = (await token.balanceOf(client1)).toNumber();
         await token.transfer(client2, 1e18, {from: client1});
+        tokenAfter = (await token.balanceOf(client1)).toNumber();
+        assert.equal((tokenBefore/1e18).toFixed(4), ((tokenAfter+1e18)/1e18).toFixed(4));
 
         await shouldHaveException(async () => {
             await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e18});
@@ -282,42 +302,41 @@ contract('Crowdsale', (accounts) => {
     });
 
     it("minimalTokenPrice -> do not allow to sell less than minimalTokenPrice", async() => {
-        await increaseTime(duration.weeks(1));
+        await increaseTime(duration.days(124));
 
-        await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17});
+        await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e18});
 
         await shouldHaveException(async () => {
-            await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17 - 1e16});
+            await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17});
         }, "Should has an error");
     });
 
     it("withdraw -> check ether transfer to wallet", async() => {
-        let balance1, balance2, balance3;
+        let balance1, balance2, balance3, balanceX;
 
         balance1 = await web3.eth.getBalance(wallet);
-        await increaseTime(duration.weeks(1));
-        await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e18});
+        await increaseTime(duration.weeks(2));
+        balanceX = await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e18});
         balance2 = await web3.eth.getBalance(wallet);
-
         assert.equal(Math.round((balance2 - balance1)/1e14), 1e4);
     });
 
 
-    it("finishCrowdsale -> finish minting", async() => {
-        let tokenOnClient, totalSupply;
+    it("finishCrowd -> purchase token count", async() => {
+        let tokenOnClient, totalSupply1;
 
         await increaseTime(duration.weeks(1));
         await web3.eth.sendTransaction({from: client1, to: sale.address, value: 10e18});
 
         tokenOnClient = (await token.balanceOf(client1)).toNumber();
-        totalSupply = (await token.totalSupply()).toNumber();
-        assert.equal(((totalSupply-wavesTokens)/1e18).toFixed(4), (tokenOnClient/1e18).toFixed(4));
+        assert.equal(((10/0.12*1e18*1000)/1e18).toFixed(4), (tokenOnClient/1e18).toFixed(4));
 
         await increaseTime(duration.days(60));
-        await sale.finishCrowdsale();
+        await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
     });
 
+/*
     it("getTokens -> received lower than 0.01 ether", async() => {
 
         await increaseTime(duration.weeks(1));
@@ -353,9 +372,10 @@ contract('Crowdsale', (accounts) => {
 
         await web3.eth.sendTransaction({from: client1, to: sale.address, value: web3.toWei(1)});
 
-        await balanceEqualTo(client1, 1e18/0.065*1000);
+        await balanceEqualTo(client1, 1e18/0.12*1000);
     });
-
+*/    
+/*
     it("After donate", async () => {
         await balanceEqualTo(client1, 0);
         await increaseTime(duration.weeks(1));
@@ -398,7 +418,7 @@ contract('Crowdsale', (accounts) => {
             await token.transfer(client2, 1e8, {from: client1});
         }, "Should has an error");
         
-        await sale.finishCrowdsale();
+        await sale.finishCrowd();
 
         assert.equal((await sale.running()), false);
         assert.equal((await token.mintingFinished()), true);
@@ -442,7 +462,7 @@ contract('Crowdsale', (accounts) => {
             await web3.eth.sendTransaction({from: client, to: sale.address, value: web3.toWei(4)});
         }, "Should has an error");
 
-        await sale.finishCrowdsale();
+        await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true, 'mintingFinished must true');
     });
 
@@ -456,10 +476,10 @@ contract('Crowdsale', (accounts) => {
         await web3.eth.sendTransaction({from: client1, to: sale.address, value: maxWei});
 
 
-        await sale.finishCrowdsale();
+        await sale.finishCrowd();
 
         await shouldHaveException(async () => {
-            await sale.finishCrowdsale();
+            await sale.finishCrowd();
         }, "Should has an error");
 
         assert.equal((await token.mintingFinished()), true);
@@ -517,7 +537,7 @@ contract('Crowdsale', (accounts) => {
 
         await increaseTime(duration.weeks(1));
         await web3.eth.sendTransaction({from: client1, to: sale.address, value: maxWei});
-        await sale.finishCrowdsale();
+        await sale.finishCrowd();
 
         assert.equal(
             Math.round((await sale.bountyOnlineTokens()).toNumber()/1e10),
@@ -570,7 +590,7 @@ contract('Crowdsale', (accounts) => {
         }, "Should has an error");
     });
 
-    it("finishCrowdsale -> test onlyOwner", async() => {
+    it("finishCrowd -> test onlyOwner", async() => {
         let mintCapInTokens = await sale.mintCapInTokens();
         let maxWei = (mintCapInTokens-wavesTokens)/1000*0.065;
 
@@ -580,10 +600,10 @@ contract('Crowdsale', (accounts) => {
         await increaseTime(duration.days(60));
 
         await shouldHaveException(async () => {
-            await sale.finishCrowdsale({from: client});
+            await sale.finishCrowd({from: client});
         }, "Should has an error");
 
-        await sale.finishCrowdsale({from: owner});
+        await sale.finishCrowd({from: owner});
     });
 
     it("fundMinting -> before, after and between", async() => {
@@ -637,7 +657,7 @@ contract('Crowdsale', (accounts) => {
         let maxWei = (mintCapInTokens-wavesTokens)/1000*0.065;
         await web3.eth.sendTransaction({from: client1, to: teamWallet, value: 10e18});
         await web3.eth.sendTransaction({from: client1, to: sale.address, value: maxWei});
-        await sale.finishCrowdsale();
+        await sale.finishCrowd();
 
         await increaseTime(duration.days(57));
         await sale.teamWithdraw({from: teamWallet});
@@ -675,7 +695,7 @@ contract('Crowdsale', (accounts) => {
         let mintCapInTokens = await sale.mintCapInTokens();
         let maxWei = (mintCapInTokens-wavesTokens)/1000*0.065;
         await web3.eth.sendTransaction({from: client1, to: sale.address, value: maxWei});
-        await sale.finishCrowdsale();
+        await sale.finishCrowd();
 
         let team_vesting_events = (await sale.TeamVesting({fromBlock: 0, toBlock: 'latest'}))
 
@@ -700,7 +720,7 @@ contract('Crowdsale', (accounts) => {
         let mintCapInTokens = await sale.mintCapInTokens();
         let maxWei = (mintCapInTokens-wavesTokens)/1000*0.065;
         await web3.eth.sendTransaction({from: client1, to: sale.address, value: maxWei});
-        await sale.finishCrowdsale();
+        await sale.finishCrowd();
 
         let team_vesting_events = (await sale.TeamVesting({fromBlock: 0, toBlock: 'latest'}))
 
@@ -721,7 +741,7 @@ contract('Crowdsale', (accounts) => {
         let mintCapInTokens = await sale.mintCapInTokens();
         let maxWei = (mintCapInTokens-wavesTokens)/1000*0.065;
         await web3.eth.sendTransaction({from: client1, to: sale.address, value: maxWei});
-        await sale.finishCrowdsale();
+        await sale.finishCrowd();
 
         await increaseTime(duration.days(31*12));
         let team_vesting_events = (await sale.TeamVesting({fromBlock: 0, toBlock: 'latest'}))

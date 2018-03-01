@@ -1,0 +1,1 @@
+truffle --network local develop
