@@ -21,34 +21,13 @@ contract McFlyCrowd is MultiOwners, Haltable {
     // Withdraw wallet
     address public wallet;
 
-    // start and end timestamp for TLP 1.2, endTimeTLP2 calculate from startTimeTLP2
-    uint256 public startTimeTLP2;
-    uint256 public endTimeTLP2;
-    uint256 public daysTLP2 = 56 days;
+    // start and end timestamp for TLP 1.2, other values callculated
+    uint public sT2; // startTimeTLP2
+    uint public dTLP2 = 56 days; // days of TLP2
+    uint public dBt = 60 days; // days between Windows
+    uint public dW = 12 days; // 12 days for 3,4,5,6,7 windows;
 
-    uint256 public daysBetweenTLP = 60 days;
-    uint256 public daysTLP3_7 = 12 days; // 12 days for 3,4,5,6,7 windows;
-    // start and end timestamp for TLP 1.3, endTimeTLP3 calculate from startTimeTLP3
-    uint256 public startTimeTLP3;
-    uint256 public endTimeTLP3;
-    // start and end timestamp for TLP 1.4, endTimeTLP4 calculate from startTimeTLP4
-    uint256 public startTimeTLP4;
-    uint256 public endTimeTLP4;
-    // start and end timestamp for TLP 1.5, endTimeTLP5 calculate from startTimeTLP5
-    uint256 public startTimeTLP5;
-    uint256 public endTimeTLP5;
-    // start and end timestamp for TLP 1.6, endTimeTLP6 calculate from startTimeTLP6
-    uint256 public startTimeTLP6;
-    uint256 public endTimeTLP6;
-    // start and end timestamp for TLP 1.7, endTimeTLP7 calculate from startTimeTLP7
-    uint256 public startTimeTLP7;
-    uint256 public endTimeTLP7;
-
-    // Percents
-    uint256 fundPercents = 15;
-
-    // Cap
-    // maximum possible tokens for minting
+    // Cap maximum possible tokens for minting
     uint256 public hardCapInTokens = 1800e24; // 1,800,000,000 MFL
 
     // maximum possible tokens for sell 
@@ -61,11 +40,10 @@ contract McFlyCrowd is MultiOwners, Haltable {
     uint256 public preMcFlyTotalSupply;
 
     // maximum possible tokens for fund minting
-    uint256 public fundTokens = hardCapInTokens.mul(fundPercents).div(100); // 270,000,000 MFL
+    uint256 public fundTokens = hardCapInTokens.mul(15).div(100); // 270,000,000 MFL
     uint256 public fundTotalSupply;
     address public fundMintingAgent;
 
-    // Rewards
     // WAVES
     // maximum possible tokens to convert from WAVES
     uint256 public wavesTokens = 100e24; // 100,000,000 MFL
@@ -143,7 +121,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
     // constructor run once!
     function McFlyCrowd(
-        uint256 _startTimeTLP2,
+        uint _startTimeTLP2,
         uint256 _preMcFlyTotalSupply,
         address _wallet,
         address _wavesAgent,
@@ -179,7 +157,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
         wallet = _wallet;
 
-	    startTimeTLP2 = _startTimeTLP2;
+	    sT2 = _startTimeTLP2;
         setStartEndTimeTLP(_startTimeTLP2);
 
         wavesAgent = _wavesAgent;
@@ -234,7 +212,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
     function withinPeriod() constant public returns (bool) {
-        bool withinPeriodTLP2 = (now >= startTimeTLP2 && now <= endTimeTLP2);
+        bool withinPeriodTLP2 = (now >= sT2 && now <= (sT2+dTLP2));
         return withinPeriodTLP2;
     }
 
@@ -244,35 +222,24 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
     // @return current stage name
-    function stageName() constant public returns (uint, string) {
-        bool beforePeriodTLP2 = (now < startTimeTLP2);
-        bool withinPeriodTLP2 = (now >= startTimeTLP2 && now <= endTimeTLP2);
-        bool betweenPeriodTLP2andTLP3 = (now >= endTimeTLP2 && now <= startTimeTLP3);
-        bool withinPeriodTLP3 = (now >= startTimeTLP3 && now <= endTimeTLP3);
-        bool betweenPeriodTLP3andTLP4 = (now >= endTimeTLP3 && now <= startTimeTLP4);
-        bool withinPeriodTLP4 = (now >= startTimeTLP4 && now <= endTimeTLP4);
-        bool betweenPeriodTLP4andTLP5 = (now >= endTimeTLP4 && now <= startTimeTLP5);
-        bool withinPeriodTLP5 = (now >= startTimeTLP5 && now <= endTimeTLP5);
-        bool betweenPeriodTLP5andTLP6 = (now >= endTimeTLP5 && now <= startTimeTLP6);
-        bool withinPeriodTLP6 = (now >= startTimeTLP6 && now <= endTimeTLP6);
-        bool betweenPeriodTLP6andTLP7 = (now >= endTimeTLP6 && now <= startTimeTLP7);
-        bool withinPeriodTLP7 = (now >= startTimeTLP7 && now <= endTimeTLP7);
-        bool afterPeriodTLP7 = (now > endTimeTLP7);
-    
-        if (beforePeriodTLP2) {return (101, "Not started");}
-        if (withinPeriodTLP2) {return (102, "TLP1.2");} 
-        if (betweenPeriodTLP2andTLP3) {return (103, "preTLP1.3");}
-        if (withinPeriodTLP3) {return (0, "TLP1.3");}
-        if (betweenPeriodTLP3andTLP4) {return (104, "preTLP1.4");}
-        if (withinPeriodTLP4) {return (1, "TLP1.4");}
-        if (betweenPeriodTLP4andTLP5) {return (105, "preTLP1.5");}
-        if (withinPeriodTLP5) {return (2, "TLP1.5");}
-        if (betweenPeriodTLP5andTLP6) {return (106, "preTLP1.6");}
-        if (withinPeriodTLP6) {return (3, "TLP1.6");}
-        if (betweenPeriodTLP6andTLP7) {return (107, "preTLP1.7");}
-        if (withinPeriodTLP7) {return (4, "TLP1.7");}
-        if (afterPeriodTLP7) {return (200, "Finished");}
-        return (201, "unknown");
+    function stageName() constant public returns (uint) {
+        uint eT2 = sT2+dTLP2;
+
+        if (now < sT2) {return 101;} // not started
+        if (now >= sT2 && now <= eT2) {return (102);} // TLP1.2
+
+        if (now > eT2 && now < eT2+dBt) {return (103);} // preTLP1.3
+        if (now >= (eT2+dBt) && now <= (eT2+dBt+dW)) {return (0);} // TLP1.3
+        if (now > (eT2+dBt+dW) && now < (eT2+dBt+dW+dBt)) {return (104);} // preTLP1.4
+        if (now >= (eT2+dBt+dW+dBt) && now <= (eT2+dBt+dW+dBt+dW)) {return (1);} // TLP1.4
+        if (now > (eT2+dBt+dW+dBt+dW) && now < (eT2+dBt+dW+dBt+dW+dBt)) {return (105);} // preTLP1.5
+        if (now >= (eT2+dBt+dW+dBt+dW+dBt) && now <= (eT2+dBt+dW+dBt+dW+dBt+dW)) {return (2);} // TLP1.5
+        if (now > (eT2+dBt+dW+dBt+dW+dBt+dW) && now < (eT2+dBt+dW+dBt+dW+dBt+dW+dBt)) {return (106);} // preTLP1.6
+        if (now >= (eT2+dBt+dW+dBt+dW+dBt+dW+dBt) && now <= (eT2+dBt+dW+dBt+dW+dBt+dW+dBt+dW)) {return (3);} // TLP1.6
+        if (now > (eT2+dBt+dW+dBt+dW+dBt+dW+dBt+dW) && now < (eT2+dBt+dW+dBt+dW+dBt+dW+dBt+dW+dBt)) {return (107);} // preTLP1.7
+        if (now >= (eT2+dBt+dW+dBt+dW+dBt+dW+dBt+dW+dBt) && now <= (eT2+dBt+dW+dBt+dW+dBt+dW+dBt+dW+dBt+dW)) {return (4);} // TLP1.7"
+        if (now > (eT2+dBt+dW+dBt+dW+dBt+dW+dBt+dW+dBt+dW)) {return (200);} // Finished
+        return (201); // unknown
     }
 
     /*
@@ -298,24 +265,11 @@ contract McFlyCrowd is MultiOwners, Haltable {
      * @param _at - new or old start date
      */
     function setStartEndTimeTLP(uint256 _at) onlyOwner public {
-        require(block.timestamp < startTimeTLP2); // forbid change time when TLP1.2 is active
+        require(block.timestamp < sT2); // forbid change time when TLP1.2 is active
         require(block.timestamp < _at); // should be great than current block timestamp
 
-        startTimeTLP2 = _at;
-        endTimeTLP2 = startTimeTLP2.add(daysTLP2);
+        sT2 = _at;
         SetStartTimeTLP2(_at);
-
-        // sets start and end timestamp for TLP 1.3, endTimeTLP3 calculate from startTimeTLP3
-        startTimeTLP3 = endTimeTLP2.add(daysBetweenTLP);
-        endTimeTLP3 = startTimeTLP3.add(daysTLP3_7);
-        startTimeTLP4 = endTimeTLP3.add(daysBetweenTLP);
-        endTimeTLP4 = startTimeTLP4.add(daysTLP3_7);
-        startTimeTLP5 = endTimeTLP4.add(daysBetweenTLP);
-        endTimeTLP5 = startTimeTLP5.add(daysTLP3_7);
-        startTimeTLP6 = endTimeTLP5.add(daysBetweenTLP);
-        endTimeTLP6 = startTimeTLP6.add(daysTLP3_7);
-        startTimeTLP7 = endTimeTLP6.add(daysBetweenTLP);
-        endTimeTLP7 = startTimeTLP7.add(daysTLP3_7);
     }
 
     /*
@@ -325,7 +279,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
      */
     function fundMinting(address to, uint256 amount) stopInEmergency public {
         require(msg.sender == fundMintingAgent || isOwner());
-        require(block.timestamp < startTimeTLP2);
+        require(block.timestamp < sT2);
         require(fundTotalSupply + amount <= fundTokens);
         require(token.totalSupply() + amount <= hardCapInTokens);
 
@@ -350,15 +304,15 @@ contract McFlyCrowd is MultiOwners, Haltable {
         uint256 estimate;
         uint256 price;
 
-        if (at >= startTimeTLP2 && at <= endTimeTLP2) {
-            if (at < startTimeTLP2 + 7 days) {price = 12e13;} else
-            if (at < startTimeTLP2 + 14 days) {price = 14e13;} else  
-            if (at < startTimeTLP2 + 21 days) {price = 16e13;} else 
-            if (at < startTimeTLP2 + 28 days) {price = 18e13;} else 
-            if (at < startTimeTLP2 + 35 days) {price = 20e13;} else 
-            if (at < startTimeTLP2 + 42 days) {price = 22e13;} else
-            if (at < startTimeTLP2 + 49 days) {price = 24e13;} else 
-            if (at < startTimeTLP2 + 56 days) {price = 26e13;} else
+        if (at >= sT2 && at <= (sT2+dTLP2)) {
+            if (at < sT2 + 7 days) {price = 12e13;} else
+            if (at < sT2 + 14 days) {price = 14e13;} else  
+            if (at < sT2 + 21 days) {price = 16e13;} else 
+            if (at < sT2 + 28 days) {price = 18e13;} else 
+            if (at < sT2 + 35 days) {price = 20e13;} else 
+            if (at < sT2 + 42 days) {price = 22e13;} else
+            if (at < sT2 + 49 days) {price = 24e13;} else 
+            if (at < sT2 + 56 days) {price = 26e13;} else
             {revert();}
         } else {
             revert();
@@ -399,7 +353,6 @@ contract McFlyCrowd is MultiOwners, Haltable {
         uint256 ethers;
         uint256 __at;
         uint _winNum;
-        string memory _winName;
         
         __at = block.timestamp;
 
@@ -427,7 +380,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
             wallet.transfer(ethers);
         } else {
             require(msg.value >= minETHin); // checks min ETH income
-            (_winNum, _winName) = stageName();
+            _winNum = stageName();
             require(_winNum >= 0 && _winNum < 5);
             contribute(_winNum, contributor, msg.value);
             TokenPurchaseInWindow(contributor, msg.value);
@@ -472,7 +425,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     // Finish crowdsale TLP1.2 period and open window1-5 crowdsale
     function finishCrowd() onlyOwner public {
         uint256 _tokenPerWindow;
-        require(now > endTimeTLP2 || hardCapInTokens == token.totalSupply());
+        require(now > (sT2.add(dTLP2)) || hardCapInTokens == token.totalSupply());
         require(!token.mintingFinished());
 
         _tokenPerWindow = (mintCapInTokens.sub(crowdTokensTLP2).sub(fundTotalSupply)).div(5);
@@ -490,7 +443,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
         require(token.mintingFinished());
         require(msg.sender == withdrawWallet || isOwner());
 
-        uint256 currentPeriod = (block.timestamp).sub(endTimeTLP2).div(VestingPeriodInSeconds);
+        uint256 currentPeriod = (block.timestamp.sub(sT2.add(dTLP2))).div(VestingPeriodInSeconds);
         if (currentPeriod > VestingPeriodsCount) {
             currentPeriod = VestingPeriodsCount;
         }

@@ -93,18 +93,18 @@ contract('Crowdsale', (accounts) => {
         assert.equal(odd_ethers, should_odd_ethers, textOdd);
     };
 
-    let check_tlp = async (stageName, num, name) => {
+    let check_tlp = async (stageName, num) => {
         let result = (await sale.stageName());
-        assert.equal(result[0].toNumber(),num);
-        assert.equal(result[1].toString(),name);
+        assert.equal(result.toNumber(),num);
+//        assert.equal(result[1].toString(),name);
     }
 
     beforeEach(async function () {
 //        startTimeTLP2 = web3.eth.getBlock('latest').timestamp + duration.weeks(1);
         startTimeTLP2 = latestTime() + duration.weeks(1);
-        endTimeTLP2 = startTimeTLP2 + duration.days(56);
+//        endTimeTLP2 = startTimeTLP2 + duration.days(56);
 
-        startTimeW1 = endTimeTLP2 + duration.days(60);
+/*        startTimeW1 = endTimeTLP2 + duration.days(60);
         endTimeW1 = startTimeW1 + duration.days(12);
         startTimeW2 = endTimeW1 + duration.days(60);
         endTimeW2 = startTimeW2 + duration.days(12);
@@ -114,6 +114,7 @@ contract('Crowdsale', (accounts) => {
         endTimeW4 = startTimeW4 + duration.days(12);
         startTimeW5 = endTimeW4 + duration.days(60);
         endTimeW5 = startTimeW5 + duration.days(12);
+*/
 
         sale = await Crowdsale.new(
             startTimeTLP2,
@@ -141,13 +142,6 @@ contract('Crowdsale', (accounts) => {
         );
     });
   
-    it("running -> check startTimeTLP2 and endTimeTLP2 value", async() => {
-    	let date1 = (await sale.startTimeTLP2()).toNumber();
-    	let date2 = (await sale.endTimeTLP2()).toNumber();
-	    assert.notEqual(date1, null);
-        assert.equal(date2-date1, duration.days(56));
-    });
-
     /*
    if (beforePeriodTLP2) {return (101, "Not started");}
         if (withinPeriodTLP2) {return (102, "TLP1.2");} 
@@ -166,32 +160,32 @@ contract('Crowdsale', (accounts) => {
     */
     it("running -> check ITO is started", async() => {
         assert.equal((await sale.running({from: owner})), false);
-        await check_tlp(sale.stageName(),101,'Not started');
+        await check_tlp(sale.stageName(),101);
         await increaseTime(duration.days(7));
         assert.equal((await sale.running()), true);
-        await check_tlp(sale.stageName(),102,'TLP1.2');
+        await check_tlp(sale.stageName(),102);
         await increaseTime(duration.days(56));
-        await check_tlp(sale.stageName(),103,'preTLP1.3');
+        await check_tlp(sale.stageName(),103);
         await increaseTime(duration.days(60));
-        await check_tlp(sale.stageName(),0,'TLP1.3');
+        await check_tlp(sale.stageName(),0);
         await increaseTime(duration.days(12));
-        await check_tlp(sale.stageName(),104,'preTLP1.4');
+        await check_tlp(sale.stageName(),104);
         await increaseTime(duration.days(60));
-        await check_tlp(sale.stageName(),1,'TLP1.4');
+        await check_tlp(sale.stageName(),1);
         await increaseTime(duration.days(12));
-        await check_tlp(sale.stageName(),105,'preTLP1.5');
+        await check_tlp(sale.stageName(),105);
         await increaseTime(duration.days(60));
-        await check_tlp(sale.stageName(),2,'TLP1.5');
+        await check_tlp(sale.stageName(),2);
         await increaseTime(duration.days(12));
-        await check_tlp(sale.stageName(),106,'preTLP1.6');
+        await check_tlp(sale.stageName(),106);
         await increaseTime(duration.days(60));
-        await check_tlp(sale.stageName(),3,'TLP1.6');
+        await check_tlp(sale.stageName(),3);
         await increaseTime(duration.days(12));
-        await check_tlp(sale.stageName(),107,'preTLP1.7');
+        await check_tlp(sale.stageName(),107);
         await increaseTime(duration.days(60));
-        await check_tlp(sale.stageName(),4,'TLP1.7');
+        await check_tlp(sale.stageName(),4);
         await increaseTime(duration.days(12));
-        await check_tlp(sale.stageName(),200,'Finished');
+        await check_tlp(sale.stageName(),200);
     });
 
     it("running -> check tokens minted to wallets at start", async() => {
@@ -215,8 +209,7 @@ contract('Crowdsale', (accounts) => {
          // 0.22 | 1 ETH -> 1 / (100+10) * 100 / 0.2 * 1000 = 4545,4545454545 MFL
          // 0.24 | 1 ETH -> 1 / (100+20) * 100 / 0.2 * 1000 = 4166,6666666667 MFL
          // 0.26 | 1 ETH -> 1 / (100+30) * 100 / 0.2 * 1000 = 3846,1538461538 MFL
-//        await check_calcAmount(1e18, startTimeTLP2, 5555, 8333e18, 0);
-        await check_calcAmount(1e18, startTimeTLP2, 5555, 8333.3333333333e18);
+        await check_calcAmount(1e18, startTimeTLP2, wavesTokens, 8333.3333333333e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(8), wavesTokens, 7142.8571428571e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(15), wavesTokens, 6250e18);
         await check_calcAmount(1e18, startTimeTLP2 + duration.days(22), wavesTokens, 5555.5555555556e18);
@@ -233,7 +226,7 @@ contract('Crowdsale', (accounts) => {
     it("setStartEndTimeTLP2 -> set and check", async() => {
         let set_start_time_tlp2 = (await sale.SetStartTimeTLP2({fromBlock: 0, toBlock: 'latest'}))
 
-        let time1 = await sale.startTimeTLP2();
+        let time1 = await sale.sT2();
         await sale.setStartEndTimeTLP(startTimeTLP2 + duration.days(1));
 
         set_start_time_tlp2.get((err, events) => {
@@ -241,7 +234,7 @@ contract('Crowdsale', (accounts) => {
             assert.equal(events[0].event, 'SetStartTimeTLP2');
         });
 
-        let time2 = await sale.startTimeTLP2();
+        let time2 = await sale.sT2();
         assert.equal(time2-time1, duration.days(1));
     });
 
