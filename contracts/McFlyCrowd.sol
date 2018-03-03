@@ -22,10 +22,10 @@ contract McFlyCrowd is MultiOwners, Haltable {
     address public wallet;
 
     // start and end timestamp for TLP 1.2, other values callculated
-    uint public sT2; // startTimeTLP2
-    uint public dTLP2 = 56 days; // days of TLP2
-    uint public dBt = 60 days; // days between Windows
-    uint public dW = 12 days; // 12 days for 3,4,5,6,7 windows;
+    uint256 public sT2; // startTimeTLP2
+    uint256 public dTLP2 = 56 days; // days of TLP2
+    uint256 public dBt = 60 days; // days between Windows
+    uint256 public dW = 12 days; // 12 days for 3,4,5,6,7 windows;
 
     // Cap maximum possible tokens for minting
     uint256 public hardCapInTokens = 1800e24; // 1,800,000,000 MFL
@@ -55,7 +55,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     uint256 VestingPeriodsCount = 24;
 
     // Team 10%
-    uint256 _teamTokens;
+    uint256 public _teamTokens;
     uint256 public teamTotalSupply;
     address public teamWallet;
 
@@ -70,12 +70,12 @@ contract McFlyCrowd is MultiOwners, Haltable {
     address public bountyOfflineWallet;
 
     // Advisory 5%
-    uint256 _advisoryTokens;
+    uint256 public _advisoryTokens;
     uint256 public advisoryTotalSupply;
     address public advisoryWallet;
 
     // Reserved for future 9%
-    uint256 _reservedTokens;
+    uint256 public _reservedTokens;
     uint256 public reservedTotalSupply;
     address public reservedWallet;
 
@@ -92,26 +92,28 @@ contract McFlyCrowd is MultiOwners, Haltable {
         address addr;
         uint256 amount;
     }
+    mapping (uint32 => Ppl) public ppls;
 
     struct Window {
         bool active;
         uint256 totalEthInWindow;
-        uint totalTransactionCount;
-        uint refundIndex;
+        uint32 totalTransCnt;
+        uint32 refundIndex;
         uint256 tokenPerWindow;
-        mapping (uint => Ppl) ppls;
-    }
-    mapping (uint => Window) windows;
-
+    } 
+    mapping (uint8 => Window) public ww;
+    
     event TokenPurchase(address indexed beneficiary, uint256 value, uint256 amount);
-    event TokenPurchaseInWindow(address indexed beneficiary, uint256 value);
+    event TokenPurchaseInWindow(address indexed beneficiary, uint256 value, uint8 winnum, uint32 totalcnt, uint256 totaleth1);
     event TransferOddEther(address indexed beneficiary, uint256 value);
     event FundMinting(address indexed beneficiary, uint256 value);
-    event WithdrawVesting(address indexed beneficiary, uint256 period, uint256 value);
+    event WithdrawVesting(address indexed beneficiary, uint256 period, uint256 value, uint256 value_total);
     event TokenWithdrawAtWindow(address indexed beneficiary, uint256 value);
     event SetFundMintingAgent(address new_agent);
     event SetStartTimeTLP2(uint256 new_startTimeTLP2);
     event SetMinETHincome(uint256 new_minETHin);
+    event NewWindow(uint8 winNum, uint256 amountTokensPerWin);
+    event TokenETH(uint256 totalEth, uint32 totalCnt);
 
     modifier validPurchase() {
         bool nonZeroPurchase = msg.value != 0;
@@ -119,9 +121,31 @@ contract McFlyCrowd is MultiOwners, Haltable {
         _;        
     }
 
+    function getPpls(uint32 index) constant public returns (uint256) {
+        return (ppls[index].amount);
+    }
+    function getPplsAddr(uint32 index) constant public returns (address) {
+        return (ppls[index].addr);
+    }
+    function getWtotalEth(uint8 winNum) constant public returns (uint256) {
+        return (ww[winNum].totalEthInWindow);
+    }
+    function getWtoken(uint8 winNum) constant public returns (uint256) {
+        return (ww[winNum].tokenPerWindow);
+    }
+    function getWactive(uint8 winNum) constant public returns (bool) {
+        return (ww[winNum].active);
+    }
+    function getWtotalTransCnt(uint8 winNum) constant public returns (uint32) {
+        return (ww[winNum].totalTransCnt);
+    }
+    function getWrefundIndex(uint8 winNum) constant public returns (uint32) {
+        return (ww[winNum].refundIndex);
+    }
+
     // constructor run once!
     function McFlyCrowd(
-        uint _startTimeTLP2,
+        uint256 _startTimeTLP2,
         uint256 _preMcFlyTotalSupply,
         address _wallet,
         address _wavesAgent,
@@ -222,7 +246,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
     // @return current stage name
-    function stageName() constant public returns (uint) {
+    function stageName() constant public returns (uint8) {
         uint eT2 = sT2+dTLP2;
 
         if (now < sT2) {return 101;} // not started
@@ -329,13 +353,6 @@ contract McFlyCrowd is MultiOwners, Haltable {
         return (estimate.sub(_totalSupply), 0);
     }
 
-    // check private !!!!!!!!
-     function contribute(uint _winNum, address _contributor, uint256 _amount) private { 
-        Window storage w = windows[_winNum];
-        w.ppls[w.totalTransactionCount++] = Ppl({addr: _contributor, amount: _amount});
-        w.totalEthInWindow.add(msg.value);
-    }
-
     /*
      * @dev fallback for processing ether
      */
@@ -352,8 +369,8 @@ contract McFlyCrowd is MultiOwners, Haltable {
         uint256 oddEthers;
         uint256 ethers;
         uint256 __at;
-        uint _winNum;
-        
+        uint8 _winNum;
+
         __at = block.timestamp;
 
         require(contributor != 0x0);
@@ -382,44 +399,54 @@ contract McFlyCrowd is MultiOwners, Haltable {
             require(msg.value >= minETHin); // checks min ETH income
             _winNum = stageName();
             require(_winNum >= 0 && _winNum < 5);
-            contribute(_winNum, contributor, msg.value);
-            TokenPurchaseInWindow(contributor, msg.value);
+            Window storage w = ww[_winNum];
+
+            require(w.tokenPerWindow > 0); // check that we have tokens!
+
+            w.totalEthInWindow = w.totalEthInWindow.add(msg.value);
+            ppls[w.totalTransCnt].addr = contributor;
+            ppls[w.totalTransCnt].amount = msg.value;
+            w.totalTransCnt++;
+            TokenPurchaseInWindow(contributor, msg.value, _winNum, w.totalTransCnt, w.totalEthInWindow);
         }
     }
 
     // close window N1-5
-    function closeWindow(uint _winNum) onlyOwner stopInEmergency public {
-        require(windows[_winNum].active);
-	    windows[_winNum].active = false;
+    function closeWindow(uint8 _winNum) onlyOwner stopInEmergency public {
+        require(ww[_winNum].active);
+	    ww[_winNum].active = false;
 
         wallet.transfer(this.balance);
     }
 
     // transfer tokens to ppl accts (window1-5)
-    function sendTokensWindow(uint256 _winNum) onlyOwner stopInEmergency public {
+    function sendTokensWindow(uint8 _winNum) onlyOwner stopInEmergency public {
         uint256 _tokenPerETH;
         uint256 _tokenToSend = 0;
-        Window storage w = windows[_winNum];
-        uint256 index = w.refundIndex;
+        uint32 index = ww[_winNum].refundIndex;
 
-        require(w.active);
-        require(w.totalEthInWindow > 0 && w.totalTransactionCount > 0);
+	    TokenETH(ww[_winNum].totalEthInWindow, ww[_winNum].totalTransCnt);
 
-        _tokenPerETH = w.tokenPerWindow.div(w.totalEthInWindow); // max McFly in window / ethInWindow
- 
-        while (index < w.totalTransactionCount && msg.gas > 120000) {
-	        _tokenToSend = _tokenPerETH.mul(w.ppls[index].amount);
-            token.transfer(w.ppls[index].addr, _tokenToSend);
-	        TokenWithdrawAtWindow(w.ppls[index].addr, _tokenToSend);
-            w.ppls[index].amount = 0;
+        require(ww[_winNum].active);
+        require(ww[_winNum].totalEthInWindow > 0);
+        require(ww[_winNum].totalTransCnt > 0);
+
+        _tokenPerETH = ww[_winNum].tokenPerWindow.div(ww[_winNum].totalEthInWindow); // max McFly in window / ethInWindow
+
+        while (index < ww[_winNum].totalTransCnt && msg.gas > 100000) {
+            _tokenToSend = _tokenPerETH.mul(ppls[index].amount);
+            token.transfer(ppls[index].addr, _tokenToSend);
+            TokenWithdrawAtWindow(ppls[index].addr, _tokenToSend);
+            ppls[index].amount = 0;
+            ppls[index].addr = 0;
             index++;
         }
-        w.refundIndex = index;
+        ww[_winNum].refundIndex = index;
     }
 
-    // function newWindow(uint _winNum, uint256 _maxTokenPerWindow) onlyOwner stopInEmergency public {
-    function newWindow(uint _winNum, uint256 __tokenPerWindow) private {
-        windows[_winNum] = Window(true, 0, 0, 0, __tokenPerWindow);
+    function newWindow(uint8 _winNum, uint256 __tokenPerWindow) private {
+        ww[_winNum] = Window(true, 0, 0, 0, __tokenPerWindow);
+        NewWindow(_winNum, __tokenPerWindow);
     }
 
     // Finish crowdsale TLP1.2 period and open window1-5 crowdsale
@@ -431,7 +458,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
         _tokenPerWindow = (mintCapInTokens.sub(crowdTokensTLP2).sub(fundTotalSupply)).div(5);
         token.mint(this, _tokenPerWindow.mul(5)); // mint to contract address
         // shoud be MAX tokens minted!!! 1,800,000,000
-        for (uint y = 0; y < 5; y++) {
+        for (uint8 y = 0; y < 5; y++) {
             newWindow(y, _tokenPerWindow);
         }
 
@@ -439,7 +466,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
     // vesting for team, advisory and reserved
-    function vestingWithdraw(address withdrawWallet, uint256 withdrawTokens, uint256 withdrawTotalSupply) private {
+    function vestingWithdraw(address withdrawWallet, uint256 withdrawTokens, uint256 withdrawTotalSupply) private returns (uint256) {
         require(token.mintingFinished());
         require(msg.sender == withdrawWallet || isOwner());
 
@@ -451,21 +478,23 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
         require(withdrawTotalSupply + tokenAvailable <= withdrawTokens);
 
-        withdrawTotalSupply = withdrawTotalSupply.add(tokenAvailable);
+        withdrawTotalSupply = withdrawTotalSupply + tokenAvailable;
 
-	    WithdrawVesting(withdrawWallet, currentPeriod, tokenAvailable);
+	    WithdrawVesting(withdrawWallet, currentPeriod, tokenAvailable, withdrawTotalSupply);
         token.transfer(withdrawWallet, tokenAvailable);
+
+        return withdrawTotalSupply;
     }
 
     function teamWithdraw() public {
-	    vestingWithdraw(teamWallet, _teamTokens, teamTotalSupply);
+	    teamTotalSupply = vestingWithdraw(teamWallet, _teamTokens, teamTotalSupply);
     }
 
     function advisoryWithdraw() public {
-	    vestingWithdraw(advisoryWallet, _advisoryTokens, advisoryTotalSupply);
+	    advisoryTotalSupply = vestingWithdraw(advisoryWallet, _advisoryTokens, advisoryTotalSupply);
     }
 
     function reservedWithdraw() public {
-	    vestingWithdraw(reservedWallet, _reservedTokens, reservedTotalSupply);
+	    reservedTotalSupply = vestingWithdraw(reservedWallet, _reservedTokens, reservedTotalSupply);
     }
 }
