@@ -1,5 +1,18 @@
 pragma solidity ^0.4.19;
 
+/**
+ * Copyright (c) 2016 Smart Contract Solutions, Inc.
+ * author: "Manuel Araoz <manuelaraoz@gmail.com>"
+ * license: "MIT"
+ * source: https://github.com/OpenZeppelin/zeppelin-solidity
+ * modification: Dmitriy Khizhinskiy @McFly.aero
+ */
+
+/**
+ * @title Ownable
+ * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * functions, this simplifies the implementation of "user permissions".
+ */
 contract Ownable {
   address public owner;
   address public candidate;
@@ -39,5 +52,4 @@ contract Ownable {
     OwnershipTransferred(owner, candidate);
     owner = candidate;
   }
-
 }

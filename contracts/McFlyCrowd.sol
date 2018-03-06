@@ -1,5 +1,11 @@
 pragma solidity ^0.4.19;
 
+/**
+ * Copyright (c) 2018 McFly.aero
+ * author: Dmitriy Khizhinskiy
+ * license: "MIT"
+ */
+
 import "./SafeMath.sol";
 import "./McFlyToken.sol";
 import "./Haltable.sol";
@@ -23,9 +29,9 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
     // start and end timestamp for TLP 1.2, other values callculated
     uint256 public sT2; // startTimeTLP2
-    uint256 public dTLP2 = 56 days; // days of TLP2
-    uint256 public dBt = 60 days; // days between Windows
-    uint256 public dW = 12 days; // 12 days for 3,4,5,6,7 windows;
+    uint256 dTLP2 = 56 days; // days of TLP2
+    uint256 dBt = 60 days; // days between Windows
+    uint256 dW = 12 days; // 12 days for 3,4,5,6,7 windows;
 
     // Cap maximum possible tokens for minting
     uint256 public hardCapInTokens = 1800e24; // 1,800,000,000 MFL
@@ -37,16 +43,16 @@ contract McFlyCrowd is MultiOwners, Haltable {
     uint256 public crowdTokensTLP2;
 
     // tokens crowd before this contract (MFL tokens)
-    uint256 public preMcFlyTotalSupply;
+    uint256 preMcFlyTotalSupply;
 
     // maximum possible tokens for fund minting
-    uint256 public fundTokens = hardCapInTokens.mul(15).div(100); // 270,000,000 MFL
+    uint256 fundTokens = hardCapInTokens.mul(15).div(100); // 270,000,000 MFL
     uint256 public fundTotalSupply;
     address public fundMintingAgent;
 
     // WAVES
     // maximum possible tokens to convert from WAVES
-    uint256 public wavesTokens = 100e24; // 100,000,000 MFL
+    uint256 wavesTokens = 100e24; // 100,000,000 MFL
     address public wavesAgent;
     address public wavesGW;
 
@@ -55,7 +61,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     uint256 VestingPeriodsCount = 24;
 
     // Team 10%
-    uint256 public _teamTokens;
+    uint256 _teamTokens;
     uint256 public teamTotalSupply;
     address public teamWallet;
 
@@ -70,12 +76,12 @@ contract McFlyCrowd is MultiOwners, Haltable {
     address public bountyOfflineWallet;
 
     // Advisory 5%
-    uint256 public _advisoryTokens;
+    uint256 _advisoryTokens;
     uint256 public advisoryTotalSupply;
     address public advisoryWallet;
 
     // Reserved for future 9%
-    uint256 public _reservedTokens;
+    uint256 _reservedTokens;
     uint256 public reservedTotalSupply;
     address public reservedWallet;
 
@@ -119,28 +125,6 @@ contract McFlyCrowd is MultiOwners, Haltable {
         bool nonZeroPurchase = msg.value != 0;
         require(nonZeroPurchase);
         _;        
-    }
-
-    function getPpls(uint32 index) constant public returns (uint256) {
-        return (ppls[index].amount);
-    }
-    function getPplsAddr(uint32 index) constant public returns (address) {
-        return (ppls[index].addr);
-    }
-    function getWtotalEth(uint8 winNum) constant public returns (uint256) {
-        return (ww[winNum].totalEthInWindow);
-    }
-    function getWtoken(uint8 winNum) constant public returns (uint256) {
-        return (ww[winNum].tokenPerWindow);
-    }
-    function getWactive(uint8 winNum) constant public returns (bool) {
-        return (ww[winNum].active);
-    }
-    function getWtotalTransCnt(uint8 winNum) constant public returns (uint32) {
-        return (ww[winNum].totalTransCnt);
-    }
-    function getWrefundIndex(uint8 winNum) constant public returns (uint32) {
-        return (ww[winNum].refundIndex);
     }
 
     // constructor run once!
@@ -235,6 +219,31 @@ contract McFlyCrowd is MultiOwners, Haltable {
         token.allowTransfer(airdropGW);
     }
 
+    // comment this functions after test passed !!
+    function getPpls(uint32 index) constant public returns (uint256) {
+        return (ppls[index].amount);
+    }
+    function getPplsAddr(uint32 index) constant public returns (address) {
+        return (ppls[index].addr);
+    }
+    function getWtotalEth(uint8 winNum) constant public returns (uint256) {
+        return (ww[winNum].totalEthInWindow);
+    }
+    function getWtoken(uint8 winNum) constant public returns (uint256) {
+        return (ww[winNum].tokenPerWindow);
+    }
+    function getWactive(uint8 winNum) constant public returns (bool) {
+        return (ww[winNum].active);
+    }
+    function getWtotalTransCnt(uint8 winNum) constant public returns (uint32) {
+        return (ww[winNum].totalTransCnt);
+    }
+    function getWrefundIndex(uint8 winNum) constant public returns (uint32) {
+        return (ww[winNum].refundIndex);
+    }
+    // END comment this functions after test passed !!
+
+
     function withinPeriod() constant public returns (bool) {
         bool withinPeriodTLP2 = (now >= sT2 && now <= (sT2+dTLP2));
         return withinPeriodTLP2;
@@ -247,7 +256,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
     // @return current stage name
     function stageName() constant public returns (uint8) {
-        uint eT2 = sT2+dTLP2;
+        uint256 eT2 = sT2+dTLP2;
 
         if (now < sT2) {return 101;} // not started
         if (now >= sT2 && now <= eT2) {return (102);} // TLP1.2
@@ -385,7 +394,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
             token.mint(contributor, amount); // fail if minting is finished
             TokenPurchase(contributor, ethers, amount);
-            counter_in.add(ethers);
+            counter_in = counter_in.add(ethers);
             crowdTokensTLP2 = crowdTokensTLP2.add(amount);
 
             if (oddEthers > 0) {
@@ -423,6 +432,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     function sendTokensWindow(uint8 _winNum) onlyOwner stopInEmergency public {
         uint256 _tokenPerETH;
         uint256 _tokenToSend = 0;
+        address _tempAddr;
         uint32 index = ww[_winNum].refundIndex;
 
 	    TokenETH(ww[_winNum].totalEthInWindow, ww[_winNum].totalTransCnt);
@@ -435,11 +445,12 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
         while (index < ww[_winNum].totalTransCnt && msg.gas > 100000) {
             _tokenToSend = _tokenPerETH.mul(ppls[index].amount);
-            token.transfer(ppls[index].addr, _tokenToSend);
-            TokenWithdrawAtWindow(ppls[index].addr, _tokenToSend);
             ppls[index].amount = 0;
+            _tempAddr = ppls[index].addr;
             ppls[index].addr = 0;
             index++;
+            token.transfer(_tempAddr, _tokenToSend);
+            TokenWithdrawAtWindow(_tempAddr, _tokenToSend);
         }
         ww[_winNum].refundIndex = index;
     }

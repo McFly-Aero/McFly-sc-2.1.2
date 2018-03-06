@@ -1,16 +1,21 @@
 pragma solidity ^0.4.19;
 
+/**
+ * Copyright (c) 2018 McFly.aero
+ * author: Dmitriy Khizhinskiy
+ * license: "MIT"
+ */
+
 import './MintableToken.sol';
 
 contract McFlyToken is MintableToken {
 
-    string public constant name = 'McFlyToken';
-    string public constant symbol = 'McFly';
+    string public constant name = "McFlyToken";
+    string public constant symbol = "McFly";
     uint8 public constant decimals = 18;
 
     mapping(address=>bool) whitelist;
 
-    event Burn(address indexed from, uint256 value);
     event AllowTransfer(address from);
 
     modifier canTransfer() {
@@ -30,14 +35,5 @@ contract McFlyToken is MintableToken {
     function transfer(address to, uint256 value) canTransfer public returns (bool) {
         return super.transfer(to, value);
     }
-
-/*    function burn(address from) onlyOwner public returns (bool) {
-        Transfer(from, 0x0, balances[from]);
-        Burn(from, balances[from]);
-
-        balances[0x0] += balances[from];
-        balances[from] = 0;
-    }
-*/    
 }
 

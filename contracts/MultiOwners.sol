@@ -1,5 +1,11 @@
 pragma solidity ^0.4.19;
 
+/**
+ * Copyright (c) 2018 McFly.aero
+ * author: Dmitriy Khizhinskiy
+ * license: "MIT"
+ */
+
 contract MultiOwners {
 
     event AccessGrant(address indexed owner);
