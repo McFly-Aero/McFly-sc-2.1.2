@@ -1,14 +1,10 @@
-pragma solidity ^0.4.18;
-
-/**
- * Copyright (c) 2016 Smart Contract Solutions, Inc.
- * author: "Manuel Araoz <manuelaraoz@gmail.com>"
- * license: "MIT"
- * source: https://github.com/OpenZeppelin/zeppelin-solidity
- */
+pragma solidity ^0.4.19;
 
 /**
  * @title SafeMath
+ * @author Copyright (c) 2016 Smart Contract Solutions, Inc.
+ * @author "Manuel Araoz <manuelaraoz@gmail.com>"
+ * @dev license: "MIT", source: https://github.com/OpenZeppelin/zeppelin-solidity
  * @dev Math operations with safety checks that throw on error
  */
 library SafeMath {
@@ -24,6 +20,7 @@ library SafeMath {
     return c;
   }
 
+
   /**
   * @dev Integer division of two numbers, truncating the quotient.
   */
@@ -34,6 +31,7 @@ library SafeMath {
     return c;
   }
 
+
   /**
   * @dev Substracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
   */
@@ -41,6 +39,7 @@ library SafeMath {
     assert(b <= a);
     return a - b;
   }
+
 
   /**
   * @dev Adds two numbers, throws on overflow.

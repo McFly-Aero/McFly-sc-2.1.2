@@ -1,16 +1,17 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.19;
 
 /**
- * Copyright (c) 2016 Smart Contract Solutions, Inc.
- * author: "Manuel Araoz <manuelaraoz@gmail.com>"
- * license: "MIT"
- * source: https://github.com/OpenZeppelin/zeppelin-solidity
- * modification: Dmitriy Khizhinskiy @McFly.aero
+ * @title BasicToken smart contract
+ * @author Copyright (c) 2016 Smart Contract Solutions, Inc.
+ * @author "Manuel Araoz <manuelaraoz@gmail.com>"
+ * @dev license: "MIT", source: https://github.com/OpenZeppelin/zeppelin-solidity
+ * @author modification: Dmitriy Khizhinskiy @McFly.aero
  */
 
 import "./ERC20Basic.sol";
 import "./SafeMath.sol";
 import "./LengthValidator.sol";
+
 
 /**
  * @title Basic token
@@ -30,6 +31,7 @@ contract BasicToken is ERC20Basic, LengthValidator {
     return totalSupply_;
   }
 
+
   /**
   * @dev transfer token for a specified address
   * @param _to The address to transfer to.
@@ -45,6 +47,7 @@ contract BasicToken is ERC20Basic, LengthValidator {
     Transfer(msg.sender, _to, _value);
     return true;
   }
+
 
   /**
   * @dev Gets the balance of the specified address.

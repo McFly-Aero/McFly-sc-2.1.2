@@ -1,15 +1,11 @@
 pragma solidity ^0.4.19;
 
 /**
- * Copyright (c) 2016 Smart Contract Solutions, Inc.
- * author: "Manuel Araoz <manuelaraoz@gmail.com>"
- * license: "MIT"
- * source: https://github.com/OpenZeppelin/zeppelin-solidity
- * modification: Dmitriy Khizhinskiy @McFly.aero
- */
-
-/**
- * @title Ownable
+ * @title Ownable smart contract
+ * @author Copyright (c) 2016 Smart Contract Solutions, Inc.
+ * @author "Manuel Araoz <manuelaraoz@gmail.com>"
+ * @dev license: "MIT", source: https://github.com/OpenZeppelin/zeppelin-solidity
+ * @author modification: Dmitriy Khizhinskiy @McFly.aero
  * @dev The Ownable contract has an owner address, and provides basic authorization control
  * functions, this simplifies the implementation of "user permissions".
  */
@@ -27,6 +23,7 @@ contract Ownable {
     owner = msg.sender;
   }
 
+
   /**
    * @dev Throws if called by any account other than the owner.
    */
@@ -34,6 +31,7 @@ contract Ownable {
     require(msg.sender == owner);
     _;
   }
+
 
   /**
    * @dev Allows the current owner to _request_ transfer control of the contract to a newOwner.
@@ -43,6 +41,7 @@ contract Ownable {
     require(newOwner != address(0));
     candidate = newOwner;
   }
+
 
   /**
    * @dev Allows the _NEW_ candidate to complete transfer control of the contract to him.

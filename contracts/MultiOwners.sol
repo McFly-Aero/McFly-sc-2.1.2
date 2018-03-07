@@ -1,11 +1,11 @@
 pragma solidity ^0.4.19;
 
 /**
- * Copyright (c) 2018 McFly.aero
- * author: Dmitriy Khizhinskiy
- * license: "MIT"
+ * @title MultiOwners smart contract
+ * @author Copyright (c) 2018 McFly.aero
+ * @author Dmitriy Khizhinskiy
+ * @author "MIT"
  */
-
 contract MultiOwners {
 
     event AccessGrant(address indexed owner);
@@ -20,14 +20,17 @@ contract MultiOwners {
         publisher = msg.sender;
     }
 
+
     modifier onlyOwner() { 
         require(owners[msg.sender] == true);
         _; 
     }
 
+
     function isOwner() constant public returns (bool) {
         return owners[msg.sender] ? true : false;
     }
+
 
     function checkOwner(address maybe_owner) constant public returns (bool) {
         return owners[maybe_owner] ? true : false;
@@ -38,6 +41,7 @@ contract MultiOwners {
         owners[_owner] = true;
         AccessGrant(_owner);
     }
+
 
     function revoke(address _owner) onlyOwner public {
         require(_owner != publisher);

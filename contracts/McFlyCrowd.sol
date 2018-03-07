@@ -1,105 +1,106 @@
 pragma solidity ^0.4.19;
 
-/**
- * Copyright (c) 2018 McFly.aero
- * author: Dmitriy Khizhinskiy
- * license: "MIT"
- */
-
 import "./SafeMath.sol";
 import "./McFlyToken.sol";
 import "./Haltable.sol";
 import "./MultiOwners.sol";
 
-
+/**
+ * @title McFly crowdsale smart contract
+ * @author Copyright (c) 2018 McFly.aero
+ * @author Dmitriy Khizhinskiy
+ * @author "MIT"
+ * @dev inherited from MultiOwners & Haltable
+ */
 contract McFlyCrowd is MultiOwners, Haltable {
     using SafeMath for uint256;
 
-    // Total ETH received during WAVES, TLP1.2 & window[1-5]
+    /// @dev Total ETH received during WAVES, TLP1.2 & window[1-5]
     uint256 public counter_in; // tlp2
     
-    // minimum ETH to partisipate in window 1-5
+    /// @dev minimum ETH to partisipate in window 1-5
     uint256 public minETHin = 1e18; // 1 ETH
 
-    // Token
+    /// @dev Token
     McFlyToken public token;
 
-    // Withdraw wallet
+    /// @dev Withdraw wallet
     address public wallet;
 
-    // start and end timestamp for TLP 1.2, other values callculated
+    /// @dev start and end timestamp for TLP 1.2, other values callculated
     uint256 public sT2; // startTimeTLP2
     uint256 dTLP2 = 56 days; // days of TLP2
     uint256 dBt = 60 days; // days between Windows
     uint256 dW = 12 days; // 12 days for 3,4,5,6,7 windows;
 
-    // Cap maximum possible tokens for minting
+    /// @dev Cap maximum possible tokens for minting
     uint256 public hardCapInTokens = 1800e24; // 1,800,000,000 MFL
 
-    // maximum possible tokens for sell 
+    /// @dev maximum possible tokens for sell 
     uint256 public mintCapInTokens = hardCapInTokens.mul(70).div(100); // 1,260,000,000 MFL
 
-    // tokens crowd within TLP2
+    /// @dev tokens crowd within TLP2
     uint256 public crowdTokensTLP2;
 
-    // tokens crowd before this contract (MFL tokens)
+    /// @dev tokens crowd before this contract (MFL tokens)
     uint256 preMcFlyTotalSupply;
 
-    // maximum possible tokens for fund minting
+    /// @dev maximum possible tokens for fund minting
     uint256 fundTokens = hardCapInTokens.mul(15).div(100); // 270,000,000 MFL
     uint256 public fundTotalSupply;
     address public fundMintingAgent;
 
-    // WAVES
-    // maximum possible tokens to convert from WAVES
+    /// @dev maximum possible tokens to convert from WAVES
     uint256 wavesTokens = 100e24; // 100,000,000 MFL
     address public wavesAgent;
     address public wavesGW;
 
-    // Vesting for team, advisory, reserve.
+    /// @dev Vesting param for team, advisory, reserve.
     uint256 VestingPeriodInSeconds = 30 days; // 24 month
     uint256 VestingPeriodsCount = 24;
 
-    // Team 10%
+    /// @dev Team 10%
     uint256 _teamTokens;
     uint256 public teamTotalSupply;
     address public teamWallet;
 
-    // Bounty 5% (2% + 3%)
-    // Bounty online 2%
+    /// @dev Bounty 5% (2% + 3%)
+    /// @dev Bounty online 2%
     uint256 _bountyOnlineTokens;
     address public bountyOnlineWallet;
     address public bountyOnlineGW;
 
-    // Bounty offline 3%
+    /// @dev Bounty offline 3%
     uint256 _bountyOfflineTokens;
     address public bountyOfflineWallet;
 
-    // Advisory 5%
+    /// @dev Advisory 5%
     uint256 _advisoryTokens;
     uint256 public advisoryTotalSupply;
     address public advisoryWallet;
 
-    // Reserved for future 9%
+    /// @dev Reserved for future 9%
     uint256 _reservedTokens;
     uint256 public reservedTotalSupply;
     address public reservedWallet;
 
-    // AirDrop 1%
+    /// @dev AirDrop 1%
     uint256 _airdropTokens;
     address public airdropWallet;
     address public airdropGW;
 
-    // PreMcFly wallet (MFL)
+    /// @dev PreMcFly wallet (MFL)
     uint256 _preMcFlyTokens;
     address public preMcFlyWallet;
 
+    /// @dev Ppl structure for Win1-5
     struct Ppl {
         address addr;
         uint256 amount;
     }
     mapping (uint32 => Ppl) public ppls;
 
+    /// @dev Window structure for Win1-5
     struct Window {
         bool active;
         uint256 totalEthInWindow;
@@ -108,26 +109,33 @@ contract McFlyCrowd is MultiOwners, Haltable {
         uint256 tokenPerWindow;
     } 
     mapping (uint8 => Window) public ww;
-    
+
+
+    /// @dev Events
     event TokenPurchase(address indexed beneficiary, uint256 value, uint256 amount);
     event TokenPurchaseInWindow(address indexed beneficiary, uint256 value, uint8 winnum, uint32 totalcnt, uint256 totaleth1);
     event TransferOddEther(address indexed beneficiary, uint256 value);
     event FundMinting(address indexed beneficiary, uint256 value);
-    event WithdrawVesting(address indexed beneficiary, uint256 period, uint256 value, uint256 value_total);
+    event WithdrawVesting(address indexed beneficiary, uint256 period, uint256 value, uint256 valueTotal);
     event TokenWithdrawAtWindow(address indexed beneficiary, uint256 value);
-    event SetFundMintingAgent(address new_agent);
-    event SetStartTimeTLP2(uint256 new_startTimeTLP2);
-    event SetMinETHincome(uint256 new_minETHin);
+    event SetFundMintingAgent(address newAgent);
+    event SetStartTimeTLP2(uint256 newStartTimeTLP2);
+    event SetMinETHincome(uint256 newMinETHin);
     event NewWindow(uint8 winNum, uint256 amountTokensPerWin);
     event TokenETH(uint256 totalEth, uint32 totalCnt);
 
+
+    /// @dev check for Non zero value
     modifier validPurchase() {
         bool nonZeroPurchase = msg.value != 0;
         require(nonZeroPurchase);
         _;        
     }
 
-    // constructor run once!
+
+    /**
+     * @dev conctructor of contract
+     */
     function McFlyCrowd(
         uint256 _startTimeTLP2,
         uint256 _preMcFlyTotalSupply,
@@ -144,7 +152,8 @@ contract McFlyCrowd is MultiOwners, Haltable {
         address _airdropWallet,
         address _airdropGW,
         address _preMcFlyWallet
-    ) public {
+    ) public 
+    {   
         require(_startTimeTLP2 >= block.timestamp);
         require(_preMcFlyTotalSupply > 0);
         require(_wallet != 0x0);
@@ -219,42 +228,30 @@ contract McFlyCrowd is MultiOwners, Haltable {
         token.allowTransfer(airdropGW);
     }
 
-    // comment this functions after test passed !!
-    function getPpls(uint32 index) constant public returns (uint256) {
-        return (ppls[index].amount);
-    }
-    function getPplsAddr(uint32 index) constant public returns (address) {
-        return (ppls[index].addr);
-    }
-    function getWtotalEth(uint8 winNum) constant public returns (uint256) {
-        return (ww[winNum].totalEthInWindow);
-    }
-    function getWtoken(uint8 winNum) constant public returns (uint256) {
-        return (ww[winNum].tokenPerWindow);
-    }
-    function getWactive(uint8 winNum) constant public returns (bool) {
-        return (ww[winNum].active);
-    }
-    function getWtotalTransCnt(uint8 winNum) constant public returns (uint32) {
-        return (ww[winNum].totalTransCnt);
-    }
-    function getWrefundIndex(uint8 winNum) constant public returns (uint32) {
-        return (ww[winNum].refundIndex);
-    }
-    // END comment this functions after test passed !!
 
-
+    /**
+     * @dev check is TLP2 is active?
+     * @return false if crowd event was ended
+     */
     function withinPeriod() constant public returns (bool) {
         bool withinPeriodTLP2 = (now >= sT2 && now <= (sT2+dTLP2));
         return withinPeriodTLP2;
     }
 
-    // @return false if crowd event was ended
+
+    /**
+     * @dev check is TLP2 is active and minting Not finished
+     * @return false if crowd event was ended
+     */
     function running() constant public returns (bool) {
         return withinPeriod() && !token.mintingFinished();
     }
 
-    // @return current stage name
+
+    /**
+     * @dev check current stage name
+     * @return uint8 stage number
+     */
     function stageName() constant public returns (uint8) {
         uint256 eT2 = sT2+dTLP2;
 
@@ -275,6 +272,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
         return (201); // unknown
     }
 
+
     /*
      * @dev change agent for waves minting
      * @praram agent - new agent address
@@ -283,15 +281,17 @@ contract McFlyCrowd is MultiOwners, Haltable {
         fundMintingAgent = agent;
         SetFundMintingAgent(agent);
     }
-    
+
+
     /*
      * @dev change min ETH income during Window1-5
-     * @param minETHin 
+     * @param minETHin - new limit
      */
     function setMinETHin(uint256 _minETHin) onlyOwner public {
         minETHin = _minETHin;
         SetMinETHincome(_minETHin);
     }
+
 
     /*
      * @dev set TLP1.X (2-7) start & end dates
@@ -304,6 +304,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
         sT2 = _at;
         SetStartTimeTLP2(_at);
     }
+
 
     /*
      * @dev Large Token Holder minting 
@@ -321,6 +322,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
         token.mint(to, amount);
     }
 
+
     /*
      * @dev calculate amount
      * @param  _value - ether to be converted to tokens
@@ -333,23 +335,21 @@ contract McFlyCrowd is MultiOwners, Haltable {
         uint256 amount,
         uint256 at,
         uint256 _totalSupply
-    ) public constant returns (uint256, uint256) {
+    ) public constant returns (uint256, uint256) 
+    {
         uint256 estimate;
         uint256 price;
 
         if (at >= sT2 && at <= (sT2+dTLP2)) {
-            if (at < sT2 + 7 days) {price = 12e13;} else
-            if (at < sT2 + 14 days) {price = 14e13;} else  
-            if (at < sT2 + 21 days) {price = 16e13;} else 
-            if (at < sT2 + 28 days) {price = 18e13;} else 
-            if (at < sT2 + 35 days) {price = 20e13;} else 
-            if (at < sT2 + 42 days) {price = 22e13;} else
-            if (at < sT2 + 49 days) {price = 24e13;} else 
-            if (at < sT2 + 56 days) {price = 26e13;} else
-            {revert();}
-        } else {
-            revert();
-        }
+            if (at < sT2 + 7 days) {price = 12e13;} else if (at < sT2 + 14 days) {
+            price = 14e13;} else if (at < sT2 + 21 days) {
+            price = 16e13;} else if (at < sT2 + 28 days) {
+            price = 18e13;} else if (at < sT2 + 35 days) {
+            price = 20e13;} else if (at < sT2 + 42 days) {
+            price = 22e13;} else if (at < sT2 + 49 days) {
+            price = 24e13;} else if (at < sT2 + 56 days) {
+            price = 26e13;} else {revert();}
+        } else {revert();}
 
         estimate = _totalSupply.add(amount.mul(1e18).div(price));
 
@@ -362,12 +362,14 @@ contract McFlyCrowd is MultiOwners, Haltable {
         return (estimate.sub(_totalSupply), 0);
     }
 
+
     /*
      * @dev fallback for processing ether
      */
     function() payable public {
         return getTokens(msg.sender);
     }
+
 
     /*
      * @dev sell token and send to contributor address
@@ -420,7 +422,11 @@ contract McFlyCrowd is MultiOwners, Haltable {
         }
     }
 
-    // close window N1-5
+
+    /**
+     * @dev close Window and transfer Eth to wallet address
+     * @param _winNum - number of window 0-4 to close
+     */
     function closeWindow(uint8 _winNum) onlyOwner stopInEmergency public {
         require(ww[_winNum].active);
 	    ww[_winNum].active = false;
@@ -428,7 +434,11 @@ contract McFlyCrowd is MultiOwners, Haltable {
         wallet.transfer(this.balance);
     }
 
-    // transfer tokens to ppl accts (window1-5)
+
+    /**
+     * @dev transfer tokens to ppl accts (window1-5)
+     * @param _winNum - number of window 0-4 to close
+     */
     function sendTokensWindow(uint8 _winNum) onlyOwner stopInEmergency public {
         uint256 _tokenPerETH;
         uint256 _tokenToSend = 0;
@@ -455,12 +465,21 @@ contract McFlyCrowd is MultiOwners, Haltable {
         ww[_winNum].refundIndex = index;
     }
 
+
+    /**
+     * @dev open new window 0-5 and write totl token per window in structure
+     * @param _winNum - number of window 0-4 to close
+     * @param __tokenPerWindow - total token for window 0-4
+     */
     function newWindow(uint8 _winNum, uint256 __tokenPerWindow) private {
         ww[_winNum] = Window(true, 0, 0, 0, __tokenPerWindow);
         NewWindow(_winNum, __tokenPerWindow);
     }
 
-    // Finish crowdsale TLP1.2 period and open window1-5 crowdsale
+
+    /**
+     * @dev Finish crowdsale TLP1.2 period and open window1-5 crowdsale
+     */
     function finishCrowd() onlyOwner public {
         uint256 _tokenPerWindow;
         require(now > (sT2.add(dTLP2)) || hardCapInTokens == token.totalSupply());
@@ -476,7 +495,14 @@ contract McFlyCrowd is MultiOwners, Haltable {
         token.finishMinting();
     }
 
-    // vesting for team, advisory and reserved
+
+    /**
+     * @dev withdraw tokens amount within vesting rules for team, advisory and reserved
+     * @param withdrawWallet - wallet to transfer tokens
+     * @param withdrawTokens - amount of tokens to transfer to
+     * @param withdrawTotalSupply - total amount of tokens transfered to account
+     * @return unit256 total amount of tokens after transfer
+     */
     function vestingWithdraw(address withdrawWallet, uint256 withdrawTokens, uint256 withdrawTotalSupply) private returns (uint256) {
         require(token.mintingFinished());
         require(msg.sender == withdrawWallet || isOwner());
@@ -497,14 +523,26 @@ contract McFlyCrowd is MultiOwners, Haltable {
         return withdrawTotalSupply;
     }
 
+
+    /**
+     * @dev withdraw tokens amount within vesting rules for team
+     */
     function teamWithdraw() public {
 	    teamTotalSupply = vestingWithdraw(teamWallet, _teamTokens, teamTotalSupply);
     }
 
+
+    /**
+     * @dev withdraw tokens amount within vesting rules for advisory
+     */
     function advisoryWithdraw() public {
 	    advisoryTotalSupply = vestingWithdraw(advisoryWallet, _advisoryTokens, advisoryTotalSupply);
     }
 
+
+    /**
+     * @dev withdraw tokens amount within vesting rules for reserved wallet
+     */
     function reservedWithdraw() public {
 	    reservedTotalSupply = vestingWithdraw(reservedWallet, _reservedTokens, reservedTotalSupply);
     }

@@ -1,15 +1,12 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.19;
 
 /**
- * Copyright (c) 2018 McFly.aero
- * author: Dmitriy Khizhinskiy
- * license: "MIT"
+ * @title LengthValidator smart contract - fix ERC20 short address attack
+ * @author Copyright (c) 2018 McFly.aero
+ * @author Dmitriy Khizhinskiy
+ * @author "MIT"
  */
-
 contract LengthValidator {
-    /**
-     * ERC20 Short Address Attack - fix
-     */
     modifier valid_short(uint _cntArgs) {
         assert(msg.data.length == (_cntArgs * 32 + 4));
         _;

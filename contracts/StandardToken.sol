@@ -1,24 +1,18 @@
-pragma solidity ^0.4.18;
-
-/**
- * Copyright (c) 2016 Smart Contract Solutions, Inc.
- * author: "Manuel Araoz <manuelaraoz@gmail.com>"
- * license: "MIT"
- * source: https://github.com/OpenZeppelin/zeppelin-solidity
- * modification: Dmitriy Khizhinskiy @McFly.aero
- */
+pragma solidity ^0.4.19;
 
 import "./BasicToken.sol";
 import "./ERC20.sol";
 
 /**
  * @title Standard ERC20 token
- *
+ * @author Copyright (c) 2016 Smart Contract Solutions, Inc.
+ * @author "Manuel Araoz <manuelaraoz@gmail.com>"
+ * @dev license: "MIT", source: https://github.com/OpenZeppelin/zeppelin-solidity
+ * @author modification: Dmitriy Khizhinskiy @McFly.aero
  * @dev Implementation of the basic standard token.
  * @dev https://github.com/ethereum/EIPs/issues/20
  * @dev Based on code by FirstBlood: https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
  */
-
 contract StandardToken is ERC20, BasicToken {
 
   mapping (address => mapping (address => uint256)) internal allowed;
@@ -41,6 +35,7 @@ contract StandardToken is ERC20, BasicToken {
     return true;
   }
 
+
   /**
    * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
    *
@@ -57,6 +52,7 @@ contract StandardToken is ERC20, BasicToken {
     return true;
   }
 
+
   /**
    * @dev Function to check the amount of tokens that an owner allowed to a spender.
    * @param _owner address The address which owns the funds.
@@ -66,6 +62,7 @@ contract StandardToken is ERC20, BasicToken {
   function allowance(address _owner, address _spender) public view returns (uint256) {
     return allowed[_owner][_spender];
   }
+
 
   /**
    * @dev Increase the amount of tokens that an owner allowed to a spender.
@@ -82,6 +79,7 @@ contract StandardToken is ERC20, BasicToken {
     Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
     return true;
   }
+
 
   /**
    * @dev Decrease the amount of tokens that an owner allowed to a spender.

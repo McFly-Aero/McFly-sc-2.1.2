@@ -1,13 +1,15 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.19;
 
 /**
- * Copyright (c) 2016 Smart Contract Solutions, Inc.
- * author: "Manuel Araoz <manuelaraoz@gmail.com>"
- * license: "MIT"
- * source: https://github.com/OpenZeppelin/zeppelin-solidity
+ * @title ERC20 smart contract
+ * @author Copyright (c) 2016 Smart Contract Solutions, Inc.
+ * @author "Manuel Araoz <manuelaraoz@gmail.com>"
+ * @dev license: "MIT", source: https://github.com/OpenZeppelin/zeppelin-solidity
+ * @author modification: Dmitriy Khizhinskiy @McFly.aero
  */
 
 import "./ERC20Basic.sol";
+
 
 /**
  * @title ERC20 interface

@@ -1,12 +1,4 @@
-pragma solidity ^0.4.18;
-
-/**
- * Copyright (c) 2016 Smart Contract Solutions, Inc.
- * author: "Manuel Araoz <manuelaraoz@gmail.com>"
- * license: "MIT"
- * source: https://github.com/OpenZeppelin/zeppelin-solidity
- * modification: Dmitriy Khizhinskiy @McFly.aero
- */
+pragma solidity ^0.4.19;
 
 import './SafeMath.sol';
 import './Ownable.sol';
@@ -14,7 +6,11 @@ import "./StandardToken.sol";
 import "./LengthValidator.sol";
 
 /**
- * @title Mintable token
+ * @title Mintable token smart contract
+ * @author Copyright (c) 2016 Smart Contract Solutions, Inc.
+ * @author "Manuel Araoz <manuelaraoz@gmail.com>"
+ * @dev license: "MIT", source: https://github.com/OpenZeppelin/zeppelin-solidity
+ * @author modification: Dmitriy Khizhinskiy @McFly.aero
  * @dev Simple ERC20 Token example, with mintable token creation
  * @dev Issue: * https://github.com/OpenZeppelin/zeppelin-solidity/issues/120
  * Based on code by TokenMarketNet: https://github.com/TokenMarketNet/ico/blob/master/contracts/MintableToken.sol
@@ -30,6 +26,7 @@ contract MintableToken is StandardToken, Ownable {
     _;
   }
 
+
   /**
    * @dev Function to mint tokens
    * @param _to The address that will receive the minted tokens.
@@ -43,6 +40,7 @@ contract MintableToken is StandardToken, Ownable {
     Transfer(address(0), _to, _amount);
     return true;
   }
+
 
   /**
    * @dev Function to stop minting new tokens.
