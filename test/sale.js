@@ -6,6 +6,8 @@ import moment, { now } from 'moment';
 var Token = artifacts.require("./McFlyToken.sol");
 var Crowdsale = artifacts.require("./McFlyCrowd.sol");
 
+var BigNumber = require('bignumber.js');
+
 contract('Crowdsale', (accounts) => {
     let owner, token, sale;
     let startTimeTLP2, endTimeTLP2, startTimeW1, endTimeW1, startTimeW2, endTimeW2, startTimeW3, endTimeW3, startTimeW4, endTimeW4, startTimeW5, endTimeW5;
@@ -155,6 +157,7 @@ contract('Crowdsale', (accounts) => {
 
         let token_balance1 = await token.balanceOf(client1);
         await token.transfer(client1, 10e18, {from: bountyOfflineWallet});
+
         let token_balance2 = await token.balanceOf(client1);
         assert.equal(token_balance2-token_balance1, 10e18);
 
@@ -195,6 +198,7 @@ contract('Crowdsale', (accounts) => {
         await token.transfer(client1, 10e18, {from: preMcFlyWallet});
         token_balance2 = await token.balanceOf(client1);
         assert.equal(token_balance2-token_balance1, 10e18);
+
     });
 
     it("1.6 token transfer -> disallow to transfer tokens for contract address without time limit", async() => {
@@ -629,57 +633,57 @@ contract('Crowdsale', (accounts) => {
         await sale.finishCrowd();
 
         await shouldHaveException(async () => {
-            await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17, gas:150000});
+            await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17, gas:180000});
         }, "Should has an error");
 
         await increaseTime(duration.days(60)); // to start win1
 
-        await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e18, gas:150000});
+        await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e18, gas:180000});
         
         await increaseTime(duration.days(13)); // end win 1
 
         await shouldHaveException(async () => {
-            await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17, gas:150000});
+            await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17, gas:180000});
         }, "Should has an error");
 
         await increaseTime(duration.days(60)); // to start win2
 
-        await web3.eth.sendTransaction({from: client2, to: sale.address, value: 1e18, gas:150000});
+        await web3.eth.sendTransaction({from: client2, to: sale.address, value: 1e18, gas:180000});
         
         await increaseTime(duration.days(13)); // end win 2
 
         await shouldHaveException(async () => {
-            await web3.eth.sendTransaction({from: client2, to: sale.address, value: 1e17, gas:150000});
+            await web3.eth.sendTransaction({from: client2, to: sale.address, value: 1e17, gas:180000});
         }, "Should has an error");
 
         await increaseTime(duration.days(60)); // to start win3
 
-        await web3.eth.sendTransaction({from: client2, to: sale.address, value: 1e18, gas:150000});
+        await web3.eth.sendTransaction({from: client2, to: sale.address, value: 1e18, gas:180000});
 
         await increaseTime(duration.days(13)); // end win 3
 
         await shouldHaveException(async () => {
-            await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17, gas:150000});
+            await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17, gas:180000});
         }, "Should has an error");
 
         await increaseTime(duration.days(60)); // to start win4
 
-        await web3.eth.sendTransaction({from: client2, to: sale.address, value: 1e18, gas:150000});
+        await web3.eth.sendTransaction({from: client2, to: sale.address, value: 1e18, gas:180000});
 
         await increaseTime(duration.days(13)); // end win 4
 
         await shouldHaveException(async () => {
-            await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17, gas:150000});
+            await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17, gas:180000});
         }, "Should has an error");
 
         await increaseTime(duration.days(60)); // to start win5
 
-        await web3.eth.sendTransaction({from: client2, to: sale.address, value: 1e18, gas:150000});
+        await web3.eth.sendTransaction({from: client2, to: sale.address, value: 1e18, gas:180000});
 
         await increaseTime(duration.days(13)); // end win 5
 
         await shouldHaveException(async () => {
-            await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17, gas:150000});
+            await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e17, gas:180000});
         }, "Should has an error");
     });
 
@@ -852,6 +856,75 @@ contract('Crowdsale', (accounts) => {
 
         // 1105 = total tokens for sale - preMcFly(55) - waves(100) + 432 for team & advisory & reserved
         assert.equal((1537000000).toFixed(4), ((await token.balanceOf(sale.address))/1e18).toFixed(4), 'all tokens minted!');
+    });
+
+    it("2.8 setTeamWallet -> good owner", async() => {
+        let set_team_wallet_events = (await sale.SetTeamWallet({fromBlock: 0, toBlock: 'latest'}))
+
+        await sale.setTeamWallet(client2);
+
+        set_team_wallet_events.get((err, events) => {
+            assert.equal(events.length, 1);
+            assert.equal(events[0].event, 'SetTeamWallet');
+        });
+    });
+
+    it("2.9 setTeamWallet -> wrong owner", async() => {
+        let set_team_wallet_events = (await sale.SetTeamWallet({fromBlock: 0, toBlock: 'latest'}))
+
+        await shouldHaveException(async () => {
+            await sale.setTeamWallet(client2, {from: client1});
+        }, "Should has an error");
+
+        set_team_wallet_events.get((err, events) => {
+            assert.equal(events.length, 0);
+        });
+    });
+    
+    it("2.10 setAdvisoryWallet -> good owner", async() => {
+        let set_advisory_wallet_events = (await sale.SetAdvisoryWallet({fromBlock: 0, toBlock: 'latest'}))
+
+        await sale.setAdvisoryWallet(client3);
+
+        set_advisory_wallet_events.get((err, events) => {
+            assert.equal(events.length, 1);
+            assert.equal(events[0].event, 'SetAdvisoryWallet');
+        });
+    });
+
+    it("2.11 setAdvisoryWallet -> wrong owner", async() => {
+        let set_advisory_wallet_events = (await sale.SetAdvisoryWallet({fromBlock: 0, toBlock: 'latest'}))
+
+        await shouldHaveException(async () => {
+            await sale.setAdvisoryWallet(client2, {from: client1});
+        }, "Should has an error");
+
+        set_advisory_wallet_events.get((err, events) => {
+            assert.equal(events.length, 0);
+        });
+    });
+
+    it("2.12 setReservedWallet -> good owner", async() => {
+        let set_reserved_wallet_events = (await sale.SetReservedWallet({fromBlock: 0, toBlock: 'latest'}))
+
+        await sale.setReservedWallet(client3);
+
+        set_reserved_wallet_events.get((err, events) => {
+            assert.equal(events.length, 1);
+            assert.equal(events[0].event, 'SetReservedWallet');
+        });
+    });
+
+    it("2.13 setReservedWallet -> wrong owner", async() => {
+        let set_reserved_wallet_events = (await sale.SetReservedWallet({fromBlock: 0, toBlock: 'latest'}))
+
+        await shouldHaveException(async () => {
+            await sale.setReservedWallet(client2, {from: client1});
+        }, "Should has an error");
+
+        set_reserved_wallet_events.get((err, events) => {
+            assert.equal(events.length, 0);
+        });
     });
 
 
@@ -1195,13 +1268,15 @@ contract('Crowdsale', (accounts) => {
 
         tokenBefore3 = (await token.balanceOf(sale.address)).toNumber();
 
-        for (var i = 1; i < 501; i++) {
+        for (var i = 1; i < 401; i++) {
             await web3.eth.sendTransaction({from: client1, to: sale.address, value: 2e18, gas:150000});
             await web3.eth.sendTransaction({from: client2, to: sale.address, value: 1e18, gas:150000});
             //console.log((await sale.getWtotalEth(0)),' ',(await sale.getWtotalTransCnt(0)),' ',(await sale.getWtoken(0)),' ',(await sale.getWrefundIndex(0)));
         }       
+        console.log('i=',i);
+
         tokenAfter3 = (await token.balanceOf(sale.address)).toNumber();
-        console.log('Balance before=',tokenBefore3,' after=',tokenAfter3);
+        console.log('token balance before=',tokenBefore3,' after=',tokenAfter3);
         //assert.equal((1500000).toFixed(4), ((tokenBefore3-tokenAfter3)/1e18).toFixed(4));
         
         //console.log('WINDOW 3')
@@ -1211,8 +1286,8 @@ contract('Crowdsale', (accounts) => {
         //console.log('PPL4=',(await sale.getPpls(3)).toNumber(),' addr=',await sale.getPplsAddr(3));
         //console.log('PPL5=',(await sale.getPpls(4)).toNumber(),' addr=',await sale.getPplsAddr(4));
 
-        console.log('SEND!!!');
-        console.log((await sale.getWtotalEth(0)),' ',(await sale.getWtotalTransCnt(2)),' ',(await sale.getWtoken(2)),' ',(await sale.getWrefundIndex(2)));
+        console.log('SEND 1111111!!!');
+        console.log('eth=',(await sale.getWtotalEth(2)),' transCnt=',(await sale.getWtotalTransCnt(2)),' tokens=',(await sale.getWtoken(2)),' refIndex=',(await sale.getWrefundIndex(2)));
 
         let set_test_x = (await sale.TokenETH({fromBlock: 0, toBlock: 'latest'}))
         await sale.sendTokensWindow(2, {from: owner});
@@ -1229,8 +1304,11 @@ contract('Crowdsale', (accounts) => {
         console.log((await sale.getWtotalEth(0)),' ',(await sale.getWtotalTransCnt(2)),' ',(await sale.getWtoken(2)),' ',(await sale.getWrefundIndex(2)));
 
         if ((await sale.getWrefundIndex(2)) != (await sale.getWtotalTransCnt)) {
+	    tokenBefore1 = (await token.balanceOf(client1)).toNumber();
+	    tokenBefore2 = (await token.balanceOf(client2)).toNumber();
+
             console.log('SEND 222222!!!');
-            console.log((await sale.getWtotalEth(0)),' ',(await sale.getWtotalTransCnt(2)),' ',(await sale.getWtoken(2)),' ',(await sale.getWrefundIndex(2)));
+            console.log('eth=',(await sale.getWtotalEth(2)),' transCnt=',(await sale.getWtotalTransCnt(2)),' tokens=',(await sale.getWtoken(2)),' refIndex=',(await sale.getWrefundIndex(2)));
     
             let set_test_x = (await sale.TokenETH({fromBlock: 0, toBlock: 'latest'}))
             await sale.sendTokensWindow(2, {from: owner});
@@ -1247,8 +1325,11 @@ contract('Crowdsale', (accounts) => {
             console.log((await sale.getWtotalEth(0)),' ',(await sale.getWtotalTransCnt(2)),' ',(await sale.getWtoken(2)),' ',(await sale.getWrefundIndex(2)));
         }
         if ((await sale.getWrefundIndex(2)) != (await sale.getWtotalTransCnt)) {
+	    tokenBefore1 = (await token.balanceOf(client1)).toNumber();
+	    tokenBefore2 = (await token.balanceOf(client2)).toNumber();
+
             console.log('SEND 333333!!!');
-            console.log((await sale.getWtotalEth(0)),' ',(await sale.getWtotalTransCnt(2)),' ',(await sale.getWtoken(2)),' ',(await sale.getWrefundIndex(2)));
+            console.log('eth=',(await sale.getWtotalEth(2)),' transCnt=',(await sale.getWtotalTransCnt(2)),' tokens=',(await sale.getWtoken(2)),' refIndex=',(await sale.getWrefundIndex(2)));
     
             let set_test_x = (await sale.TokenETH({fromBlock: 0, toBlock: 'latest'}))
             await sale.sendTokensWindow(2, {from: owner});
@@ -1265,8 +1346,11 @@ contract('Crowdsale', (accounts) => {
             console.log((await sale.getWtotalEth(0)),' ',(await sale.getWtotalTransCnt(2)),' ',(await sale.getWtoken(2)),' ',(await sale.getWrefundIndex(2)));
         }
         if ((await sale.getWrefundIndex(2)) != (await sale.getWtotalTransCnt)) {
+	    tokenBefore1 = (await token.balanceOf(client1)).toNumber();
+	    tokenBefore2 = (await token.balanceOf(client2)).toNumber();
+
             console.log('SEND 444444444!!!');
-            console.log((await sale.getWtotalEth(0)),' ',(await sale.getWtotalTransCnt(2)),' ',(await sale.getWtoken(2)),' ',(await sale.getWrefundIndex(2)));
+            console.log('eth=',(await sale.getWtotalEth(2)),' transCnt=',(await sale.getWtotalTransCnt(2)),' tokens=',(await sale.getWtoken(2)),' refIndex=',(await sale.getWrefundIndex(2)));
     
             let set_test_x = (await sale.TokenETH({fromBlock: 0, toBlock: 'latest'}))
             await sale.sendTokensWindow(2, {from: owner});
@@ -1280,7 +1364,7 @@ contract('Crowdsale', (accounts) => {
             console.log('Token Balances after  W3:client1=',tokenAfter1,' 2=',tokenAfter2);
             //assert.equal((110500000).toFixed(4), ((tokenAfter1)/1e18).toFixed(4));
             //assert.equal((110500000).toFixed(4), ((tokenAfter2)/1e18).toFixed(4));
-            console.log((await sale.getWtotalEth(0)),' ',(await sale.getWtotalTransCnt(2)),' ',(await sale.getWtoken(2)),' ',(await sale.getWrefundIndex(2)));
+            console.log('eth=',(await sale.getWtotalEth(2)),' transCnt=',(await sale.getWtotalTransCnt(2)),' tokens=',(await sale.getWtoken(2)),' refIndex=',(await sale.getWrefundIndex(2)));
         }
         // close win3
         balance1 = await web3.eth.getBalance(wallet);

@@ -29,15 +29,15 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
     /// @dev start and end timestamp for TLP 1.2, other values callculated
     uint256 public sT2; // startTimeTLP2
-    uint256 dTLP2 = 56 days; // days of TLP2
-    uint256 dBt = 60 days; // days between Windows
-    uint256 dW = 12 days; // 12 days for 3,4,5,6,7 windows;
+    uint256 constant dTLP2 = 56 days; // days of TLP2
+    uint256 constant dBt = 60 days; // days between Windows
+    uint256 constant dW = 12 days; // 12 days for 3,4,5,6,7 windows;
 
     /// @dev Cap maximum possible tokens for minting
-    uint256 public hardCapInTokens = 1800e24; // 1,800,000,000 MFL
+    uint256 public constant hardCapInTokens = 1800e24; // 1,800,000,000 MFL
 
     /// @dev maximum possible tokens for sell 
-    uint256 public mintCapInTokens = hardCapInTokens.mul(70).div(100); // 1,260,000,000 MFL
+    uint256 public constant mintCapInTokens = 1260e24; // 1,260,000,000 MFL
 
     /// @dev tokens crowd within TLP2
     uint256 public crowdTokensTLP2;
@@ -46,7 +46,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     uint256 preMcFlyTotalSupply;
 
     /// @dev maximum possible tokens for fund minting
-    uint256 fundTokens = hardCapInTokens.mul(15).div(100); // 270,000,000 MFL
+    uint256 constant fundTokens = 270e24; // 270,000,000 MFL
     uint256 public fundTotalSupply;
     address public fundMintingAgent;
 
@@ -119,6 +119,9 @@ contract McFlyCrowd is MultiOwners, Haltable {
     event WithdrawVesting(address indexed beneficiary, uint256 period, uint256 value, uint256 valueTotal);
     event TokenWithdrawAtWindow(address indexed beneficiary, uint256 value);
     event SetFundMintingAgent(address newAgent);
+    event SetTeamWallet(address newTeamWallet);
+    event SetAdvisoryWallet(address newAdvisoryWallet);
+    event SetReservedWallet(address newReservedWallet);
     event SetStartTimeTLP2(uint256 newStartTimeTLP2);
     event SetMinETHincome(uint256 newMinETHin);
     event NewWindow(uint8 winNum, uint256 amountTokensPerWin);
@@ -134,7 +137,22 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
 
     /**
-     * @dev conctructor of contract
+     * @dev conctructor of contract, set main params, create new token, do minting for some wallets
+     * @param _startTimeTLP2 - set date time of starting of TLP2 (main date!)
+     * @param _preMcFlyTotalSupply - set amount in wei total supply of previouse contract (MFL)
+     * @param _wallet - wallet for transfer ETH to it
+     * @param _wavesAgent - wallet for WAVES gw
+     * @param _wavesGW    - wallet for WAVES gw
+     * @param _fundMintingAgent - wallet who allowed to mint before TLP2
+     * @param _teamWallet - wallet for team vesting
+     * @param _bountyOnlineWallet - wallet for online bounty
+     * @param _bountyOnlineGW - wallet for online bounty GW
+     * @param _bountyOfflineWallet - wallet for offline bounty
+     * @param _advisoryWallet - wallet for advisory vesting
+     * @param _reservedWallet - wallet for reserved vesting
+     * @param _airdropWallet - wallet for airdrop
+     * @param _airdropGW - wallet for airdrop GW
+     * @param _preMcFlyWallet - wallet for transfer old MFL->McFly (once)
      */
     function McFlyCrowd(
         uint256 _startTimeTLP2,
@@ -192,7 +210,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
         airdropGW = _airdropGW;
         preMcFlyWallet = _preMcFlyWallet;
 
-        // Mint all tokens and than control it by vesting
+        /// @dev Mint all tokens and than control it by vesting
         _preMcFlyTokens = _preMcFlyTotalSupply; // McFly for thansfer to old MFL owners
         token.mint(preMcFlyWallet, _preMcFlyTokens);
         token.allowTransfer(preMcFlyWallet);
@@ -203,7 +221,6 @@ contract McFlyCrowd is MultiOwners, Haltable {
         token.allowTransfer(wavesGW);
         crowdTokensTLP2 = crowdTokensTLP2.add(wavesTokens);
 
-        // rewards !!!!
         _teamTokens = 180e24; // 180,000,000 MFL
         token.mint(this, _teamTokens); // mint to contract address
 
@@ -231,7 +248,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
     /**
      * @dev check is TLP2 is active?
-     * @return false if crowd event was ended
+     * @return false if crowd TLP2 event was ended
      */
     function withinPeriod() constant public returns (bool) {
         bool withinPeriodTLP2 = (now >= sT2 && now <= (sT2+dTLP2));
@@ -273,9 +290,9 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
 
-    /*
-     * @dev change agent for waves minting
-     * @praram agent - new agent address
+    /** 
+     * @dev change agent for minting
+     * @param agent - new agent address
      */
     function setFundMintingAgent(address agent) onlyOwner public {
         fundMintingAgent = agent;
@@ -283,9 +300,39 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
 
-    /*
+    /** 
+     * @dev change wallet for team vesting (this make possible to set smart-contract address later)
+     * @param _newTeamWallet - new wallet address
+     */
+    function setTeamWallet(address _newTeamWallet) onlyOwner public {
+        teamWallet = _newTeamWallet;
+        SetTeamWallet(_newTeamWallet);
+    }
+
+
+    /** 
+     * @dev change wallet for advisory vesting (this make possible to set smart-contract address later)
+     * @param _newAdvisoryWallet - new wallet address
+     */
+    function setAdvisoryWallet(address _newAdvisoryWallet) onlyOwner public {
+        advisoryWallet = _newAdvisoryWallet;
+        SetAdvisoryWallet(_newAdvisoryWallet);
+    }
+
+
+    /** 
+     * @dev change wallet for reserved vesting (this make possible to set smart-contract address later)
+     * @param _newReservedWallet - new wallet address
+     */
+    function setReservedWallet(address _newReservedWallet) onlyOwner public {
+        reservedWallet = _newReservedWallet;
+        SetReservedWallet(_newReservedWallet);
+    }
+
+
+    /**
      * @dev change min ETH income during Window1-5
-     * @param minETHin - new limit
+     * @param _minETHin - new limit
      */
     function setMinETHin(uint256 _minETHin) onlyOwner public {
         minETHin = _minETHin;
@@ -293,7 +340,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
 
-    /*
+    /**
      * @dev set TLP1.X (2-7) start & end dates
      * @param _at - new or old start date
      */
@@ -306,7 +353,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
 
-    /*
+    /**
      * @dev Large Token Holder minting 
      * @param to - mint to address
      * @param amount - how much mint
@@ -323,9 +370,9 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
 
-    /*
+    /**
      * @dev calculate amount
-     * @param  _value - ether to be converted to tokens
+     * @param  amount - ether to be converted to tokens
      * @param  at - current time
      * @param  _totalSupply - total supplied tokens
      * @return tokens amount that we should send to our dear ppl
@@ -363,7 +410,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
 
-    /*
+    /**
      * @dev fallback for processing ether
      */
     function() payable public {
@@ -371,7 +418,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
 
-    /*
+    /**
      * @dev sell token and send to contributor address
      * @param contributor address
      */
@@ -379,16 +426,16 @@ contract McFlyCrowd is MultiOwners, Haltable {
         uint256 amount;
         uint256 oddEthers;
         uint256 ethers;
-        uint256 __at;
+        uint256 _at;
         uint8 _winNum;
 
-        __at = block.timestamp;
+        _at = block.timestamp;
 
         require(contributor != 0x0);
        
         if (withinPeriod()) {
         
-            (amount, oddEthers) = calcAmountAt(msg.value, __at, token.totalSupply());  // recheck!!!
+            (amount, oddEthers) = calcAmountAt(msg.value, _at, token.totalSupply());  // recheck!!!
   
             require(amount + token.totalSupply() <= hardCapInTokens);
 
@@ -469,11 +516,11 @@ contract McFlyCrowd is MultiOwners, Haltable {
     /**
      * @dev open new window 0-5 and write totl token per window in structure
      * @param _winNum - number of window 0-4 to close
-     * @param __tokenPerWindow - total token for window 0-4
+     * @param _tokenPerWindow - total token for window 0-4
      */
-    function newWindow(uint8 _winNum, uint256 __tokenPerWindow) private {
-        ww[_winNum] = Window(true, 0, 0, 0, __tokenPerWindow);
-        NewWindow(_winNum, __tokenPerWindow);
+    function newWindow(uint8 _winNum, uint256 _tokenPerWindow) private {
+        ww[_winNum] = Window(true, 0, 0, 0, _tokenPerWindow);
+        NewWindow(_winNum, _tokenPerWindow);
     }
 
 
