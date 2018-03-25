@@ -119,7 +119,7 @@ contract('Crowdsale', (accounts) => {
         );
         token = await Token.at(await sale.token());
     })
-
+/*
     it("1.1 start -> Check balance of client1 and totalSupply mint after start contract", async () => {
         assert.equal((await token.balanceOf(client1)).toNumber(), 0, "balanceOf must be 0 on the start");
         assert.equal((await token.totalSupply()).toNumber(), 695e24, "totalSupply must be 695 on the start"
@@ -226,7 +226,7 @@ contract('Crowdsale', (accounts) => {
             await token.transfer(client2, 2e18, {from: client1});
         }, "Should has an error");
 
-        await increaseTime(duration.days(58));
+        await increaseTime(duration.days(118));
 
         await shouldHaveException(async () => {
             await token.transfer(client2, 2e18, {from: client1});
@@ -256,7 +256,7 @@ contract('Crowdsale', (accounts) => {
         await increaseTime(duration.weeks(1));
 
         await web3.eth.sendTransaction({from: client1, to: sale.address, value: 1e18, gas:150000});
-        await increaseTime(duration.days(60));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
 
         assert.equal((await token.mintingFinished()), true, 'token.mintingFinished should true');
@@ -273,7 +273,7 @@ contract('Crowdsale', (accounts) => {
 
     it("1.10 minimalTokenPrice -> do not allow to sell less than minimalTokenPrice at win1-5", async() => {
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
 
@@ -312,7 +312,7 @@ contract('Crowdsale', (accounts) => {
         tokenOnClient = (await token.balanceOf(client1)).toNumber();
         assert.equal(((10/0.12*1e18*1000)/1e18).toFixed(4), (tokenOnClient/1e18).toFixed(4));
 
-        await increaseTime(duration.days(60));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
         assert.equal((await sale.running({from: owner})), false);
@@ -342,7 +342,7 @@ contract('Crowdsale', (accounts) => {
         let tokenOnClient, totalSupply1;
 
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
         assert.equal((await sale.running({from: owner})), false);
@@ -453,7 +453,7 @@ contract('Crowdsale', (accounts) => {
         let balance1, balance2;
         
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
         assert.equal((await sale.running({from: owner})), false);
@@ -511,7 +511,7 @@ contract('Crowdsale', (accounts) => {
         let balance1, balance2;
         
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
         assert.equal((await sale.running({from: owner})), false);
@@ -572,7 +572,7 @@ contract('Crowdsale', (accounts) => {
         let balance1, balance2;
         
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
         assert.equal((await sale.running({from: owner})), false);
@@ -629,7 +629,7 @@ contract('Crowdsale', (accounts) => {
         let tokenOnClient, totalSupply1;
 
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(56));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
 
         await shouldHaveException(async () => {
@@ -689,7 +689,7 @@ contract('Crowdsale', (accounts) => {
 
     it("1.18 purchase token -> closeWindow, sendTokenWindows -> wrong owner", async() => {
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
         assert.equal((await sale.running({from: owner})), false);
@@ -725,11 +725,11 @@ contract('Crowdsale', (accounts) => {
         assert.equal((await sale.running({from: owner})), false);
         assert.equal((await sale.withinPeriod()), false);
         await check_tlp(sale.stageName(),101);
-        await increaseTime(duration.days(7)+duration.minutes(1));
+        await increaseTime(duration.days(15)+duration.minutes(1));
         assert.equal((await sale.running()), true);
         assert.equal((await sale.withinPeriod()), true);
         await check_tlp(sale.stageName(),102);
-        await increaseTime(duration.days(56)+duration.minutes(1));
+        await increaseTime(duration.days(118)+duration.minutes(1));
         await check_tlp(sale.stageName(),103);
         assert.equal((await sale.withinPeriod()), false);
         assert.equal((await sale.running({from: owner})), false);
@@ -847,7 +847,7 @@ contract('Crowdsale', (accounts) => {
             await sale.finishCrowd();
         }, "Should has an error");
 
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
 
         await sale.finishCrowd();
 
@@ -941,13 +941,13 @@ contract('Crowdsale', (accounts) => {
          // 0.24 | 1 ETH -> 1 / (100+20) * 100 / 0.2 * 1000 = 4166,6666666667 MFL
          // 0.26 | 1 ETH -> 1 / (100+30) * 100 / 0.2 * 1000 = 3846,1538461538 MFL
         await check_calcAmount(1e18, startTimeTLP2, wavesTokens, 8333.3333333333e18);
-        await check_calcAmount(1e18, startTimeTLP2 + duration.days(8), wavesTokens, 7142.8571428571e18);
-        await check_calcAmount(1e18, startTimeTLP2 + duration.days(15), wavesTokens, 6250e18);
-        await check_calcAmount(1e18, startTimeTLP2 + duration.days(22), wavesTokens, 5555.5555555556e18);
-        await check_calcAmount(1e18, startTimeTLP2 + duration.days(29), wavesTokens, 5000e18);
-        await check_calcAmount(1e18, startTimeTLP2 + duration.days(36), wavesTokens, 4545.4545454545e18);
-        await check_calcAmount(1e18, startTimeTLP2 + duration.days(43), wavesTokens, 4166.6666666667e18);
-        await check_calcAmount(1e18, startTimeTLP2 + duration.days(50), wavesTokens, 3846.1538461538e18);
+        await check_calcAmount(1e18, startTimeTLP2 + duration.days(16), wavesTokens, 7142.8571428571e18);
+        await check_calcAmount(1e18, startTimeTLP2 + duration.days(31), wavesTokens, 6250e18);
+        await check_calcAmount(1e18, startTimeTLP2 + duration.days(46), wavesTokens, 5555.5555555556e18);
+        await check_calcAmount(1e18, startTimeTLP2 + duration.days(61), wavesTokens, 5000e18);
+        await check_calcAmount(1e18, startTimeTLP2 + duration.days(76), wavesTokens, 4545.4545454545e18);
+        await check_calcAmount(1e18, startTimeTLP2 + duration.days(91), wavesTokens, 4166.6666666667e18);
+        await check_calcAmount(1e18, startTimeTLP2 + duration.days(106), wavesTokens, 3846.1538461538e18);
 
         await check_calcAmount(150000e18, startTimeTLP2, 1105e24, 695e24, 66600e18);
 
@@ -955,7 +955,7 @@ contract('Crowdsale', (accounts) => {
         
         // after TLP2
         await shouldHaveException(async () => {
-            await check_calcAmount(1e18, startTimeTLP2 + duration.days(57), wavesTokens, 10000e18);
+            await check_calcAmount(1e18, startTimeTLP2 + duration.days(119), wavesTokens, 10000e18);
         }, "Should has an error");
         
         // before TLP2
@@ -996,7 +996,7 @@ contract('Crowdsale', (accounts) => {
 
         await increaseTime(duration.weeks(1));
         await web3.eth.sendTransaction({from: client2, to: sale.address, value: 2e18, gas:150000});
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(101));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
         assert.equal((await sale.running({from: owner})), false);
@@ -1007,7 +1007,7 @@ contract('Crowdsale', (accounts) => {
 
         //console.log(await sale.getWtoken(0));
 
-        assert.equal((await sale.getWtoken(0)/1e24).toFixed(4), (220.9975).toFixed(4));
+        assert.equal((await sale.getWtoken(0)/1e24).toFixed(4), (220.9971).toFixed(4));
     });
 
 
@@ -1040,7 +1040,7 @@ contract('Crowdsale', (accounts) => {
 
         await increaseTime(duration.weeks(1));
         //await web3.eth.sendTransaction({from: client2, to: sale.address, value: 2e18, gas:150000});
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
         assert.equal((await sale.running({from: owner})), false);
@@ -1098,7 +1098,7 @@ contract('Crowdsale', (accounts) => {
     
     it("4.1 vestingWithdraw -> direct call prived func = fail", async() => {
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(60));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
         
@@ -1112,7 +1112,7 @@ contract('Crowdsale', (accounts) => {
         await shouldHaveException(async () => {
             await sale.teamWithdraw({from: teamWallet});
         }, "Should has an error");
-        await increaseTime(duration.days(50));
+        await increaseTime(duration.days(100));
         await shouldHaveException(async () => {
             await sale.teamWithdraw({from: teamWallet});
         }, "Should has an error");
@@ -1120,7 +1120,7 @@ contract('Crowdsale', (accounts) => {
 
     it("4.3 teamWithdraw -> wrong owner", async() => {
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(58));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
 
@@ -1139,7 +1139,7 @@ contract('Crowdsale', (accounts) => {
         let tokenBefore1, tokenAfter1, tokenBefore2, tokenAfter2, tokenBefore3, tokenAfter3;
 
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
 
@@ -1165,7 +1165,7 @@ contract('Crowdsale', (accounts) => {
         let tokenBefore1, tokenAfter1, tokenBefore2, tokenAfter2, tokenBefore3, tokenAfter3;
 
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
 
@@ -1194,7 +1194,7 @@ contract('Crowdsale', (accounts) => {
         let tokenBefore1, tokenAfter1, tokenBefore2, tokenAfter2, tokenBefore3, tokenAfter3;
 
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
 
@@ -1220,7 +1220,7 @@ contract('Crowdsale', (accounts) => {
         let tokenBefore1, tokenAfter1, tokenBefore2, tokenAfter2, tokenBefore3, tokenAfter3;
 
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
 
@@ -1241,15 +1241,15 @@ contract('Crowdsale', (accounts) => {
 
         assert.equal((await token.balanceOf(reservedWallet)).toNumber(), 162000000e18);
     });
-
-/*    
+*/
+    
     it("1.16.4 purchase token 501 times, try to sendTokens multi GAS PROBLEM", async() => {
         let tokenOnClient, totalSupply1;
         let tokenBefore1, tokenAfter1, tokenBefore2, tokenAfter2, tokenBefore3, tokenAfter3;
         let balance1, balance2;
         
         await increaseTime(duration.weeks(1));
-        await increaseTime(duration.days(57));
+        await increaseTime(duration.days(119));
         await sale.finishCrowd();
         assert.equal((await token.mintingFinished()), true);
         assert.equal((await sale.running({from: owner})), false);
@@ -1377,7 +1377,7 @@ contract('Crowdsale', (accounts) => {
         assert.equal((await sale.getWactive(2)), false);
         assert.equal((await sale.getWactive(3)), true);
     });
-*/
+
 
 
 });

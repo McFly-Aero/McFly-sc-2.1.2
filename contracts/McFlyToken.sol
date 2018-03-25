@@ -1,6 +1,6 @@
 pragma solidity ^0.4.19;
 
-import './MintableToken.sol';
+import "./MintableToken.sol";
 
 /**
  * @title McFly token smart contract

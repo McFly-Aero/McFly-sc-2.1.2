@@ -1,7 +1,7 @@
 pragma solidity ^0.4.19;
 
-import './MultiOwners.sol';
-import './SafeMath.sol';
+import "./MultiOwners.sol";
+import "./SafeMath.sol";
 
 /**
  * @title Haltable smart contract - controls owner access
