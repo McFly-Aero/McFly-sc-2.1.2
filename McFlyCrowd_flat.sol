@@ -565,7 +565,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     uint256 constant fundTokens = 270e24; // 270,000,000 MFL
     uint256 public fundTotalSupply;
     address public fundMintingAgent;
-
+                                                          
     /// @dev maximum possible tokens to convert from WAVES
     uint256 wavesTokens = 100e24; // 100,000,000 MFL
     address public wavesAgent;

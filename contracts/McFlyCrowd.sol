@@ -6,7 +6,7 @@ import "./Haltable.sol";
 import "./MultiOwners.sol";
 
 /**
- * @title McFly crowdsale smart contract
+ * @title McFly crowdsale smart contract 
  * @author Copyright (c) 2018 McFly.aero
  * @author Dmitriy Khizhinskiy
  * @author "MIT"

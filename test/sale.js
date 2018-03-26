@@ -1376,6 +1376,7 @@ contract('Crowdsale', (accounts) => {
 
         assert.equal((await sale.getWactive(2)), false);
         assert.equal((await sale.getWactive(3)), true);
+
     });
 */
 
