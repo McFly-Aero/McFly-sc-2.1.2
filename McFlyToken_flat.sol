@@ -77,8 +77,8 @@ contract Ownable {
     */
     function confirmOwnership() public {
         require(candidate == msg.sender);
-        OwnershipTransferred(owner, candidate);
         owner = candidate;
+        OwnershipTransferred(owner, candidate);        
     }
 }
 
@@ -403,8 +403,8 @@ contract McFlyToken is MintableToken {
     /// @dev add address to whitelist
     /// @param from address to add
     function allowTransfer(address from) onlyOwner public {
-        AllowTransfer(from);
         whitelist[from] = true;
+        AllowTransfer(from);
     }
 
     /// @dev Do the transfer from address to address value

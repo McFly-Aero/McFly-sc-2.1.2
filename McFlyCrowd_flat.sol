@@ -77,8 +77,8 @@ contract Ownable {
     */
     function confirmOwnership() public {
         require(candidate == msg.sender);
-        OwnershipTransferred(owner, candidate);
         owner = candidate;
+        OwnershipTransferred(owner, candidate);        
     }
 }
 
@@ -459,8 +459,8 @@ contract McFlyToken is MintableToken {
     /// @dev add address to whitelist
     /// @param from address to add
     function allowTransfer(address from) onlyOwner public {
-        AllowTransfer(from);
         whitelist[from] = true;
+        AllowTransfer(from);
     }
 
     /// @dev Do the transfer from address to address value
@@ -652,7 +652,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
     // comment this functions after test passed !!
-    function getPpls(uint32 index) constant public returns (uint256) {
+    /*function getPpls(uint32 index) constant public returns (uint256) {
         return (ppls[index].amount);
     }
     function getPplsAddr(uint32 index) constant public returns (address) {
@@ -672,9 +672,8 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
     function getWrefundIndex(uint8 winNum) constant public returns (uint32) {
         return (ww[winNum].refundIndex);
-    }
+    }*/
     // END comment this functions after test passed !!
-
 
 
     /**
@@ -906,8 +905,8 @@ contract McFlyCrowd is MultiOwners, Haltable {
         require(token.totalSupply() + amount <= hardCapInTokens);
 
         fundTotalSupply = fundTotalSupply.add(amount);
-        FundMinting(to, amount);
         token.mint(to, amount);
+        FundMinting(to, amount);
     }
 
 
@@ -989,8 +988,8 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
             if (oddEthers > 0) {
                 require(oddEthers < msg.value);
-                TransferOddEther(contributor, oddEthers);
                 contributor.transfer(oddEthers);
+                TransferOddEther(contributor, oddEthers);
             }
 
             wallet.transfer(ethers);
@@ -1105,8 +1104,8 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
         uint256 _withdrawTotalSupply = withdrawTotalSupply + tokenAvailable;
 
-        WithdrawVesting(withdrawWallet, currentPeriod, tokenAvailable, _withdrawTotalSupply);
         token.transfer(withdrawWallet, tokenAvailable);
+        WithdrawVesting(withdrawWallet, currentPeriod, tokenAvailable, _withdrawTotalSupply);
 
         return _withdrawTotalSupply;
     }

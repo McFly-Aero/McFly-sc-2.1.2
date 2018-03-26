@@ -48,7 +48,7 @@ contract Ownable {
     */
     function confirmOwnership() public {
         require(candidate == msg.sender);
-        OwnershipTransferred(owner, candidate);
         owner = candidate;
+        OwnershipTransferred(owner, candidate);        
     }
 }
