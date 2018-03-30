@@ -119,7 +119,7 @@ contract('Crowdsale', (accounts) => {
         );
         token = await Token.at(await sale.token());
     })
-
+/*
     it("1.1 start -> Check balance of client1 and totalSupply mint after start contract", async () => {
         assert.equal((await token.balanceOf(client1)).toNumber(), 0, "balanceOf must be 0 on the start");
         assert.equal((await token.totalSupply()).toNumber(), 695e24, "totalSupply must be 695 on the start"
@@ -1233,8 +1233,8 @@ contract('Crowdsale', (accounts) => {
 
         assert.equal((await token.balanceOf(reservedWallet)).toNumber(), 162000000e18);
     });
-
-/*    
+*/
+    
     it("1.16.4 purchase token 501 times, try to sendTokens multi GAS PROBLEM", async() => {
         let tokenOnClient, totalSupply1;
         let tokenBefore1, tokenAfter1, tokenBefore2, tokenAfter2, tokenBefore3, tokenAfter3;
@@ -1370,7 +1370,7 @@ contract('Crowdsale', (accounts) => {
         assert.equal((await sale.getWactive(3)), true);
 
     });
-*/
+
 
 
 });

@@ -558,6 +558,8 @@ contract McFlyCrowd is MultiOwners, Haltable {
     /// @dev tokens crowd within TLP2
     uint256 public crowdTokensTLP2;
 
+    uint256 public _preMcFly;
+    
     /// @dev maximum possible tokens for fund minting
     uint256 constant fundTokens = 270e24; // 270,000,000 MFL
     uint256 public fundTotalSupply;
@@ -745,9 +747,10 @@ contract McFlyCrowd is MultiOwners, Haltable {
         preMcFlyWallet = _preMcFlyWallet;
 
         /// @dev Mint all tokens and than control it by vesting
-        token.mint(preMcFlyWallet, _preMcFlyTotalSupply); // McFly for thansfer to old MFL owners
+        _preMcFly = _preMcFlyTotalSupply;
+        token.mint(preMcFlyWallet, _preMcFly); // McFly for thansfer to old MFL owners
         token.allowTransfer(preMcFlyWallet);
-        crowdTokensTLP2 = crowdTokensTLP2.add(_preMcFlyTotalSupply);
+        crowdTokensTLP2 = crowdTokensTLP2.add(_preMcFly);
 
         token.mint(wavesAgent, wavesTokens); // 100,000,000 MFL
         token.allowTransfer(wavesAgent);
