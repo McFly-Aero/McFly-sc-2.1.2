@@ -241,8 +241,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
      * @return false if crowd TLP2 event was ended
      */
     function withinPeriod() constant public returns (bool) {
-        bool withinPeriodTLP2 = (now >= sT2 && now <= (sT2+dTLP2));
-        return withinPeriodTLP2;
+        return (now >= sT2 && now <= (sT2+dTLP2));
     }
 
 

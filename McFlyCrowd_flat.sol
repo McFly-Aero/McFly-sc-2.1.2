@@ -1,4 +1,13 @@
-pragma solidity ^0.4.19;
+pragma solidity 0.4.19;
+
+/**
+ *
+ * @title McFly.aero - main contract
+ * @author Copyright (c) 2018 McFly.aero
+ * @author Dmitriy Khizhinskiy
+ * @author "MIT"
+ *
+ */ 
 
 /**
  * @title ERC20 Basic smart contract
@@ -742,8 +751,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
      * @return false if crowd TLP2 event was ended
      */
     function withinPeriod() constant public returns (bool) {
-        bool withinPeriodTLP2 = (now >= sT2 && now <= (sT2+dTLP2));
-        return withinPeriodTLP2;
+        return (now >= sT2 && now <= (sT2+dTLP2));
     }
 
 
