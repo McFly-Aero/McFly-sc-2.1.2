@@ -559,7 +559,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     uint256 public crowdTokensTLP2;
 
     uint256 public _preMcFly;
-    
+
     /// @dev maximum possible tokens for fund minting
     uint256 constant fundTokens = 270e24; // 270,000,000 MFL
     uint256 public fundTotalSupply;
@@ -649,7 +649,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
 
     // comment this functions after test passed !!
-    function getPpls(uint32 index) constant public returns (uint256) {
+    /*function getPpls(uint32 index) constant public returns (uint256) {
         return (ppls[index].amount);
     }
     function getPplsAddr(uint32 index) constant public returns (address) {
@@ -669,7 +669,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
     }
     function getWrefundIndex(uint8 winNum) constant public returns (uint32) {
         return (ww[winNum].refundIndex);
-    }
+    }*/
     // END comment this functions after test passed !!
 
 
@@ -1030,8 +1030,7 @@ contract McFlyCrowd is MultiOwners, Haltable {
 
         _tokenPerETH = ww[_winNum].tokenPerWindow.div(ww[_winNum].totalEthInWindow); // max McFly in window / ethInWindow
 
-//        while (index < ww[_winNum].totalTransCnt && gasleft() > 100000) {
-        while (index < ww[_winNum].totalTransCnt && msg.gas > 100000) {
+        while (index < ww[_winNum].totalTransCnt && gasleft() > 100000) {
             _tokenToSend = _tokenPerETH.mul(ppls[index].amount);
             ppls[index].amount = 0;
             _tempAddr = ppls[index].addr;
