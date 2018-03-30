@@ -24,7 +24,7 @@ contract ERC20Basic {
  */
 contract LengthValidator {
     modifier valid_short(uint _cntArgs) {
-        assert(msg.data.length == (_cntArgs * 32 + 4));
+ //       assert(msg.data.length == (_cntArgs * 32 + 4));
         _;
     }
 }

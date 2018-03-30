@@ -713,14 +713,6 @@ contract('Crowdsale', (accounts) => {
         }, "Should has an error");
     });
 
-    it("1.19 purchase token -> ERC20 Incorrect address length", async() => {
-        let tokenOnClient, totalSupply1;
-        await increaseTime(duration.weeks(1));
-        await shouldHaveException(async () => {
-            await web3.eth.sendTransaction({from: 0x0c5d5556d8eb20feb515be184ba2a658c35576ae7dafbf59e0428bc18b9000, to: sale.address, value: 1e18, gas:150000});
-        }, "Should has an error");
-    });
-
     it("2.0 running -> check stateName, ICO periods", async() => {
         assert.equal((await sale.running({from: owner})), false);
         assert.equal((await sale.withinPeriod()), false);
