@@ -434,7 +434,7 @@ contract MintableToken is StandardToken, Ownable {
  */
 contract McFlyToken is MintableToken {
     string public constant name = "McFlyToken";
-    string public constant symbol = "McFly";
+    string public constant symbol = "McFLY";
     uint8 public constant decimals = 18;
 
     /// @dev mapping for whitelist
