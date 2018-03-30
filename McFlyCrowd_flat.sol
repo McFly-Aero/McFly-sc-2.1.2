@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 /**
  * @title ERC20 Basic smart contract
@@ -647,30 +647,6 @@ contract McFlyCrowd is MultiOwners, Haltable {
         require(msg.value != 0);
         _;        
     }
-
-    // comment this functions after test passed !!
-    /*function getPpls(uint32 index) constant public returns (uint256) {
-        return (ppls[index].amount);
-    }
-    function getPplsAddr(uint32 index) constant public returns (address) {
-        return (ppls[index].addr);
-    }
-    function getWtotalEth(uint8 winNum) constant public returns (uint256) {
-        return (ww[winNum].totalEthInWindow);
-    }
-    function getWtoken(uint8 winNum) constant public returns (uint256) {
-        return (ww[winNum].tokenPerWindow);
-    }
-    function getWactive(uint8 winNum) constant public returns (bool) {
-        return (ww[winNum].active);
-    }
-    function getWtotalTransCnt(uint8 winNum) constant public returns (uint32) {
-        return (ww[winNum].totalTransCnt);
-    }
-    function getWrefundIndex(uint8 winNum) constant public returns (uint32) {
-        return (ww[winNum].refundIndex);
-    }*/
-    // END comment this functions after test passed !!
 
 
     /**
