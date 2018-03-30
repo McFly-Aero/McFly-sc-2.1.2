@@ -17,19 +17,6 @@ contract ERC20Basic {
 }
 
 /**
- * @title LengthValidator smart contract - fix ERC20 short address attack
- * @author Copyright (c) 2018 McFly.aero
- * @author Dmitriy Khizhinskiy
- * @author "MIT"
- */
-contract LengthValidator {
-    modifier valid_short(uint _cntArgs) {
- //       assert(msg.data.length == (_cntArgs * 32 + 4));
-        _;
-    }
-}
-
-/**
  * @title Ownable smart contract
  * @author Copyright (c) 2016 Smart Contract Solutions, Inc.
  * @author "Manuel Araoz <manuelaraoz@gmail.com>"
@@ -155,12 +142,11 @@ library SafeMath {
 
 
 
-
 /**
  * @title Basic token
  * @dev Basic version of StandardToken, with no allowances.
  */
-contract BasicToken is ERC20Basic, LengthValidator {
+contract BasicToken is ERC20Basic {
     using SafeMath for uint256;
 
     mapping(address => uint256) balances;
@@ -180,7 +166,7 @@ contract BasicToken is ERC20Basic, LengthValidator {
     * @param _to The address to transfer to.
     * @param _value The amount to be transferred.
     */
-    function transfer(address _to, uint256 _value) valid_short(2) public returns (bool) {
+    function transfer(address _to, uint256 _value) public returns (bool) {
         require(_to != address(0));
         require(_value <= balances[msg.sender]);
 
@@ -246,7 +232,7 @@ contract StandardToken is ERC20, BasicToken {
     * @param _to address The address which you want to transfer to
     * @param _value uint256 the amount of tokens to be transferred
     */
-    function transferFrom(address _from, address _to, uint256 _value) valid_short(3) public returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
         require(_to != address(0));
         require(_value <= balances[_from]);
         require(_value <= allowed[_from][msg.sender]);
@@ -269,7 +255,7 @@ contract StandardToken is ERC20, BasicToken {
     * @param _spender The address which will spend the funds.
     * @param _value The amount of tokens to be spent.
     */
-    function approve(address _spender, uint256 _value) valid_short(2) public returns (bool) {
+    function approve(address _spender, uint256 _value) public returns (bool) {
         allowed[msg.sender][_spender] = _value;
         Approval(msg.sender, _spender, _value);
         return true;
@@ -326,7 +312,6 @@ contract StandardToken is ERC20, BasicToken {
     }
 }
 
-
 /**
  * @title Mintable token smart contract
  * @author Copyright (c) 2016 Smart Contract Solutions, Inc.
@@ -355,7 +340,7 @@ contract MintableToken is StandardToken, Ownable {
     * @param _amount The amount of tokens to mint.
     * @return A boolean that indicates if the operation was successful.
     */
-    function mint(address _to, uint256 _amount) onlyOwner canMint valid_short(2) public returns (bool) {
+    function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
         totalSupply_ = totalSupply_.add(_amount);
         balances[_to] = balances[_to].add(_amount);
         Mint(_to, _amount);

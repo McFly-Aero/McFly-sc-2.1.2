@@ -10,14 +10,13 @@ pragma solidity ^0.4.19;
 
 import "./ERC20Basic.sol";
 import "./SafeMath.sol";
-import "./LengthValidator.sol";
 
 
 /**
  * @title Basic token
  * @dev Basic version of StandardToken, with no allowances.
  */
-contract BasicToken is ERC20Basic, LengthValidator {
+contract BasicToken is ERC20Basic {
     using SafeMath for uint256;
 
     mapping(address => uint256) balances;
@@ -37,7 +36,7 @@ contract BasicToken is ERC20Basic, LengthValidator {
     * @param _to The address to transfer to.
     * @param _value The amount to be transferred.
     */
-    function transfer(address _to, uint256 _value) valid_short(2) public returns (bool) {
+    function transfer(address _to, uint256 _value) public returns (bool) {
         require(_to != address(0));
         require(_value <= balances[msg.sender]);
 
